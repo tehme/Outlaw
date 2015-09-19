@@ -4,16 +4,19 @@
 #
 #-------------------------------------------------
 
-QT       += core
-
+QT       += core network
 QT       -= gui
 
 TARGET = TestMcClient
-CONFIG   += console
+CONFIG   += console c++11
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
 SOURCES += \
-    TestMcClient_Main.cpp
+    TestMcClient_Main.cpp \
+    MinecraftClient.cpp
+
+HEADERS += \
+    MinecraftClient.hpp

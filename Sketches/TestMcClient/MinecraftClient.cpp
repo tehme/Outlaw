@@ -54,12 +54,14 @@ Next State 	VarInt 	1 for status, 2 for login
     // next state
     handshakeData.append(char(1));
 
+    std::cout << "Handshake data:" << std::endl;
     for(auto c : handshakeData)
     {
         std::cout << std::hex << int(c) << " ";
     }
+    std::cout << std::endl << "Handshake data end" << std::endl;;
 
-    std::cout << std::endl;
+    m_socket.write(handshakeData);
 }
 
 void MinecraftClient::sendServerListPing()
@@ -86,12 +88,13 @@ void MinecraftClient::readDataFromSocket()
 {
     QByteArray data = m_socket.readAll();
 
+    std::cout << "Response data:" << std::endl;
     for(auto c : data)
     {
         std::cout << std::hex << int(c) << " ";
     }
 
-    std::cout << std::endl;
+    std::cout << std::endl << "Response data end" << std::endl;
 }
 
 //----------------------------------------------------------------------------//

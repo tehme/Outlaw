@@ -16,7 +16,11 @@ TEMPLATE = app
 
 SOURCES += \
     TestMcClient_Main.cpp \
-    MinecraftClient.cpp
+    MinecraftClient.cpp \
+    MessageBuffer.cpp \
+    VarInt.cpp
 
 HEADERS += \
-    MinecraftClient.hpp
+    MinecraftClient.hpp \
+    MessageBuffer.hpp \
+    VarInt.hpp

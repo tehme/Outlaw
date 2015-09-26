@@ -7,6 +7,12 @@ MessageBuffer::MessageBuffer() :
 {
 }
 
+MessageBuffer::MessageBuffer(const QByteArray & byteArray) :
+    m_bytes(byteArray),
+    m_offset(0)
+{
+}
+
 MessageBuffer::~MessageBuffer()
 {
 }
@@ -42,6 +48,11 @@ void MessageBuffer::clear(int nBytes)
     m_offset -= nBytes;
     if(m_offset < 0)
         m_offset = 0;
+}
+
+void MessageBuffer::clearToOffset()
+{
+    clear(m_offset);
 }
 
 int MessageBuffer::getOffset() const

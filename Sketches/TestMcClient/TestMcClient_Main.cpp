@@ -13,26 +13,29 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 //    qDebug() << "It works!";
 
-//    MinecraftClient client;
-//    client.connectToHost("localhost", 25565);
-//    client.sendHandshake();
+    const QString host = "localhost";
+    const ushort  port = 25565;
 
-    MessageBuffer buffer;
+    MinecraftClient client;
+    client.connectToHost(host, port);
+    client.sendHandshake();
 
-    QString str="herro!";
-    buffer << str;
-    str.clear();
-    buffer >> str;
+//    MessageBuffer buffer;
 
-    qDebug() << str;
+//    QString str="herro!";
+//    buffer << str;
+//    str.clear();
+//    buffer >> str;
 
-    {
-        QDebug deb = qDebug();
-        for(unsigned char c : buffer.getAllBytes())
-        {
-            deb << QString::number(c, 16);
-        }
-    }
+//    qDebug() << str;
+
+//    {
+//        QDebug deb = qDebug();
+//        for(unsigned char c : buffer.getAllBytes())
+//        {
+//            deb << QString::number(c, 16);
+//        }
+//    }
 
     return a.exec();
 }

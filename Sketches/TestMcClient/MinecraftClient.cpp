@@ -1,12 +1,16 @@
 #include "MinecraftClient.hpp"
 #include <iostream>
 #include <iomanip>
+#include "MessageBuffer.hpp"
+#include "BinaryUtils.hpp"
 
 //----------------------------------------------------------------------------//
 
 MinecraftClient::MinecraftClient(QObject *parent) :
     QObject(parent),
-    m_socket()
+    m_socket(),
+    m_host(),
+    m_port(0)
 {
     connect(&m_socket, SIGNAL(readyRead()), this, SLOT(readDataFromSocket()));
     connect(&m_socket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
@@ -17,9 +21,13 @@ MinecraftClient::~MinecraftClient()
 {
 }
 
-void MinecraftClient::connectToHost(const QString &host, const quint16 port)
+void MinecraftClient::connectToHost(const QString & host, const quint16 port)
 {
+    m_host = host;
+    m_port = port;
     m_socket.connectToHost(host, port);
+
+    m_socket.waitForConnected(); // TODO: remove this and re-emit signals.
 }
 
 void MinecraftClient::sendHandshake()
@@ -32,36 +40,35 @@ Server Port 	Unsigned Short 	default is 25565
 Next State 	VarInt 	1 for status, 2 for login
     */
 
-    QByteArray handshakeData;
+    MessageBuffer sizeBuffer;
+    MessageBuffer buffer;
 
-    // packet length
-    handshakeData.append(char(14));
+    buffer
+        << VarInt(0x00)         // packet id
+        << VarInt(47)           // protocol version
+        << QString(m_host)      // server address
+        << ushort(m_port)       // server port
+        << VarInt(1);           // next state: status
 
-    // packet id
-    handshakeData.append(char(0x00));
-
-    // protocol version
-    handshakeData.append(char(47));
-
-    // server address
-    handshakeData.append(char(8));           // length
-    handshakeData.append("localhost"); // string
-
-    // server port
-    handshakeData.append(char(25565 >> 8));
-    handshakeData.append(char(25565 & 256));
-
-    // next state
-    handshakeData.append(char(1));
+    sizeBuffer << VarInt(buffer.getSize());
 
     std::cout << "Handshake data:" << std::endl;
-    for(auto c : handshakeData)
+    std::cout << "Size: " << buffer.getSize() << std::endl;
+    for(unsigned char c : buffer.getAllBytes())
     {
-        std::cout << std::hex << int(c) << " ";
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << int(c) << " ";
     }
-    std::cout << std::endl << "Handshake data end" << std::endl;;
+    std::cout << std::endl << "Handshake data end" << std::endl;
 
-    m_socket.write(handshakeData);
+    m_socket.write(sizeBuffer.getAllBytes());
+    m_socket.write(buffer.getAllBytes());
+//    m_socket.flush();
+
+    MessageBuffer statusRequestBuffer;
+    statusRequestBuffer << VarInt(1) << VarInt(0x00);
+
+    m_socket.write(statusRequestBuffer.getAllBytes());
+    m_socket.flush();
 }
 
 void MinecraftClient::sendServerListPing()
@@ -89,10 +96,26 @@ void MinecraftClient::readDataFromSocket()
     QByteArray data = m_socket.readAll();
 
     std::cout << "Response data:" << std::endl;
-    for(auto c : data)
+
+    BinaryUtils::dumpHex(data);
+
+    MessageBuffer buffer(data);
+    VarInt msgSize;
+    buffer >> msgSize;
+
+    if(buffer.getSize() >= msgSize.getNumber())
     {
-        std::cout << std::hex << int(c) << " ";
+        VarInt msgCode;
+        buffer >> msgCode;
+
+        if(msgCode.getNumber() == 0x00) // status
+        {
+            QString statusText;
+            buffer >> statusText;
+            qDebug() << statusText;
+        }
     }
+
 
     std::cout << std::endl << "Response data end" << std::endl;
 }

@@ -19,6 +19,7 @@ class MessageBuffer
 {
 public:
     MessageBuffer();
+    MessageBuffer(const QByteArray & byteArray);
     ~MessageBuffer();
 
     bool canReadBytes(int nBytes) const;
@@ -26,6 +27,7 @@ public:
     const QByteArray & getAllBytes();
 
     void clear(int nBytes= -1);
+    void clearToOffset();
 
     int getOffset() const;
     void setOffset(int offset);

@@ -18,9 +18,12 @@ SOURCES += \
     TestMcClient_Main.cpp \
     MinecraftClient.cpp \
     MessageBuffer.cpp \
-    VarInt.cpp
+    VarInt.cpp \
+    BinaryUtils.cpp
 
 HEADERS += \
     MinecraftClient.hpp \
     MessageBuffer.hpp \
-    VarInt.hpp
+    VarInt.hpp \
+    BinaryUtils.hpp
+

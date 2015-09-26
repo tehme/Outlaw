@@ -26,6 +26,8 @@ private slots:
 
 private:
     QTcpSocket m_socket;
+    QString    m_host;
+    ushort     m_port;
 };
 
 //----------------------------------------------------------------------------//

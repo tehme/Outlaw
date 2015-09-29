@@ -10,14 +10,16 @@ class MessageBuffer;
 class VarInt
 {
 public:
-    VarInt(int number = 0);
+    VarInt(int value = 0);
     ~VarInt();
 
-    int getNumber() const;
-    void setNumber(int number);
+    int getValue() const;
+    void setValue(int value);
+
+    int getSizeAsArray() const;
 
 private:
-    int m_number;
+    int m_value;
 };
 
 //----------------------------------------------------------------------------//

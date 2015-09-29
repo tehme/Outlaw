@@ -1,11 +1,14 @@
 #include "VarInt.hpp"
+#include <iostream>
+#include <algorithm>
+#include <cassert>
 #include <QByteArray>
 #include "MessageBuffer.hpp"
 
 //----------------------------------------------------------------------------//
 
-VarInt::VarInt(int number) :
-    m_number(number)
+VarInt::VarInt(int value) :
+    m_value(value)
 {
 }
 
@@ -13,14 +16,35 @@ VarInt::~VarInt()
 {
 }
 
-int VarInt::getNumber() const
+int VarInt::getValue() const
 {
-    return m_number;
+    return m_value;
 }
 
-void VarInt::setNumber(int number)
+void VarInt::setValue(int value)
 {
-    m_number = number;
+    m_value = value;
+}
+
+// TODO: test this algorithm.
+int VarInt::getSizeAsArray() const
+{
+    if(m_value < 0)
+        return 5;
+
+//    int value = m_value;
+    for(int i = 0; i <= 4; ++i)
+    {
+        uint mask = (0b01111111 << (i * 7));
+        if(m_value <= mask)
+            return i + 1;
+
+//        value -= mask;
+    }
+
+    std::cout << "Value is " << m_value << std::endl;
+    assert(!"should never reach here");
+    return 0;
 }
 
 //----------------------------------------------------------------------------//
@@ -29,7 +53,7 @@ MessageBuffer & operator << (MessageBuffer & buffer, const VarInt & vi)
 {
     // TODO: maybe, this function is worth being moved to VarInt class to form general VarInt buffers.
 
-    int number = vi.getNumber();
+    int number = vi.getValue();
 
     for(int currentBitOffset = 0; currentBitOffset < 32; currentBitOffset += 7)
     {
@@ -83,7 +107,7 @@ MessageBuffer & operator >> (MessageBuffer & buffer, VarInt & vi)
         currentBitOffset += 7;
     }
 
-    vi.setNumber(resultNumber);
+    vi.setValue(resultNumber);
 
     return buffer;
 }

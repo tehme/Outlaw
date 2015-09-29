@@ -5,6 +5,7 @@
 
 #include "MessageBuffer.hpp"
 #include "VarInt.hpp"
+#include "BinaryUtils.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -20,22 +21,7 @@ int main(int argc, char *argv[])
     client.connectToHost(host, port);
     client.sendHandshake();
 
-//    MessageBuffer buffer;
-
-//    QString str="herro!";
-//    buffer << str;
-//    str.clear();
-//    buffer >> str;
-
-//    qDebug() << str;
-
-//    {
-//        QDebug deb = qDebug();
-//        for(unsigned char c : buffer.getAllBytes())
-//        {
-//            deb << QString::number(c, 16);
-//        }
-//    }
+    freopen("output.txt","w", stdout);
 
     return a.exec();
 }

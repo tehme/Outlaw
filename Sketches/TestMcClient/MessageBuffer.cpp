@@ -28,7 +28,7 @@ int MessageBuffer::getSize() const
     return (size >= 0) ? size : 0;
 }
 
-const QByteArray & MessageBuffer::getAllBytes()
+const QByteArray & MessageBuffer::getAllBytes() const
 {
     return m_bytes;
 }
@@ -63,6 +63,11 @@ int MessageBuffer::getOffset() const
 void MessageBuffer::setOffset(int offset)
 {
     m_offset = (offset <= m_bytes.size()) ? offset : m_bytes.size();
+}
+
+void MessageBuffer::moveOffset(int relativeOffset)
+{
+    setOffset(m_offset + relativeOffset);
 }
 
 //char MessageBuffer::readByteFromBuffer(bool moveOffset)
@@ -112,7 +117,7 @@ MessageBuffer & operator >> (MessageBuffer & buffer, QString & s)
         VarInt size;
         buffer >> size;
 
-        QByteArray utf8Bytes = buffer.readBytesFromBuffer(size.getNumber());
+        QByteArray utf8Bytes = buffer.readBytesFromBuffer(size.getValue());
 
         s = QString::fromUtf8(utf8Bytes);
     }

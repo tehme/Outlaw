@@ -24,20 +24,19 @@ public:
 
     bool canReadBytes(int nBytes) const;
     int getSize() const;
-    const QByteArray & getAllBytes();
+    const QByteArray & getAllBytes() const;
 
     void clear(int nBytes= -1);
     void clearToOffset();
 
     int getOffset() const;
     void setOffset(int offset);
+    void moveOffset(int relativeOffset);
 
 //    char readByteFromBuffer(bool moveOffset = true);
     QByteArray readBytesFromBuffer(int nBytes, bool moveOffset = true);
     void writeBytesToBuffer(const QByteArray & bytes);
     void writeBytesToBuffer(const char * bytes, int size);
-
-
 
 private:
     QByteArray m_bytes;

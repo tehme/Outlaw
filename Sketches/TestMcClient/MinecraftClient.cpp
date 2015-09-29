@@ -1,7 +1,6 @@
 #include "MinecraftClient.hpp"
 #include <iostream>
 #include <iomanip>
-#include "MessageBuffer.hpp"
 #include "BinaryUtils.hpp"
 
 //----------------------------------------------------------------------------//
@@ -12,9 +11,9 @@ MinecraftClient::MinecraftClient(QObject *parent) :
     m_host(),
     m_port(0)
 {
-    connect(&m_socket, SIGNAL(readyRead()), this, SLOT(readDataFromSocket()));
     connect(&m_socket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
     connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+    connect(&m_socket, SIGNAL(readyRead()), this, SLOT(onSocketReadyRead()));
 }
 
 MinecraftClient::~MinecraftClient()
@@ -40,34 +39,42 @@ Server Port 	Unsigned Short 	default is 25565
 Next State 	VarInt 	1 for status, 2 for login
     */
 
-    MessageBuffer sizeBuffer;
-    MessageBuffer buffer;
+    MessageBuffer handshakeSizeBuffer;
+    MessageBuffer handshakeBuffer;
 
-    buffer
-        << VarInt(0x00)         // packet id
-        << VarInt(47)           // protocol version
-        << QString(m_host)      // server address
-        << ushort(m_port)       // server port
-        << VarInt(1);           // next state: status
+    handshakeBuffer
+        << VarInt(0x00)    // packet id
+        << VarInt(47)      // protocol version
+        << QString(m_host) // server address
+        << ushort(m_port)  // server port
+        << VarInt(2);      // next state: login
 
-    sizeBuffer << VarInt(buffer.getSize());
+    handshakeSizeBuffer << VarInt(handshakeBuffer.getSize());
 
     std::cout << "Handshake data:" << std::endl;
-    std::cout << "Size: " << buffer.getSize() << std::endl;
-    for(unsigned char c : buffer.getAllBytes())
-    {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << int(c) << " ";
-    }
-    std::cout << std::endl << "Handshake data end" << std::endl;
+    BinaryUtils::dumpHex(handshakeBuffer.getAllBytes());
+    std::cout << "Handshake data end" << std::endl;
 
-    m_socket.write(sizeBuffer.getAllBytes());
-    m_socket.write(buffer.getAllBytes());
-//    m_socket.flush();
+    m_socket.write(handshakeSizeBuffer.getAllBytes());
+    m_socket.write(handshakeBuffer.getAllBytes());
 
-    MessageBuffer statusRequestBuffer;
-    statusRequestBuffer << VarInt(1) << VarInt(0x00);
+    /*
+    Packet ID 	State 	Bound To 	Field Name 	Field Type 	Notes
+    0x00 	Login 	Server 	Name 	String
+    */
 
-    m_socket.write(statusRequestBuffer.getAllBytes());
+    MessageBuffer loginStartSizeBuffer;
+    MessageBuffer loginStartBuffer;
+
+    loginStartBuffer
+        << VarInt(0x00)
+        << QString("tehme");
+
+    loginStartSizeBuffer << VarInt(loginStartBuffer.getSize());
+
+    m_socket.write(loginStartSizeBuffer.getAllBytes());
+    m_socket.write(loginStartBuffer.getAllBytes());
+
     m_socket.flush();
 }
 
@@ -91,33 +98,98 @@ void MinecraftClient::onSocketError(QAbstractSocket::SocketError socketError)
 
 //----------------------------------------------------------------------------//
 
-void MinecraftClient::readDataFromSocket()
+void MinecraftClient::onSocketReadyRead()
 {
     QByteArray data = m_socket.readAll();
+    m_incomingMessagesBuffer.writeBytesToBuffer(data);
+    handleMessages(); // emit signal to handler/state object.
+}
 
-    std::cout << "Response data:" << std::endl;
+//----------------------------------------------------------------------------//
 
-    BinaryUtils::dumpHex(data);
+void MinecraftClient::handleMessages()
+{
+//    std::cout << "Response data:" << std::endl;
 
-    MessageBuffer buffer(data);
-    VarInt msgSize;
-    buffer >> msgSize;
+//    BinaryUtils::dumpHex(data);
 
-    if(buffer.getSize() >= msgSize.getNumber())
+//    MessageBuffer buffer(data);
+//    VarInt msgSize;
+//    buffer >> msgSize;
+
+//    if(buffer.getSize() >= msgSize.getValue())
+//    {
+//        VarInt msgCode;
+//        buffer >> msgCode;
+
+//        if(msgCode.getValue() == 0x00) // status
+//        {
+//            QString statusText;
+//            buffer >> statusText;
+//            qDebug() << statusText;
+//        }
+//    }
+
+//    std::cout << std::endl << "Response data end" << std::endl;
+
+    std::cout << "Received data dump:" << std::endl;
+    BinaryUtils::dumpHex(m_incomingMessagesBuffer.getAllBytes());
+    std::cout << "Received data dump end" << std::endl;
+
+    while(m_incomingMessagesBuffer.getSize() > 0 && handleNextMessage())
     {
-        VarInt msgCode;
-        buffer >> msgCode;
-
-        if(msgCode.getNumber() == 0x00) // status
-        {
-            QString statusText;
-            buffer >> statusText;
-            qDebug() << statusText;
-        }
+        std::cout << "Handled message!" << std::endl;
     }
 
+    m_incomingMessagesBuffer.clearToOffset();
+}
 
-    std::cout << std::endl << "Response data end" << std::endl;
+bool MinecraftClient::handleNextMessage()
+{
+    VarInt messageSize;
+
+    // TODO: check for possibility to read VarInt without try/catch.
+    try
+    {
+        m_incomingMessagesBuffer >> messageSize;
+    }
+    catch(...)
+    {
+        std::cout << "Caught exception!" << std::endl;
+        return false;
+    }
+
+    if(m_incomingMessagesBuffer.getSize() < messageSize.getValue())
+    {
+        std::cout << "Not enough data!" << std::endl;
+        // Not enough data, return offset and wait for more data.
+        // TODO: bytes rollback function.
+        m_incomingMessagesBuffer.moveOffset(-messageSize.getSizeAsArray());
+        return false;
+    }
+
+    VarInt messageCode;
+    m_incomingMessagesBuffer >> messageCode;
+
+    std::cout
+        << "Message code: " << std::hex << messageCode.getValue() << std::endl
+        << "Offset: " << std::dec << m_incomingMessagesBuffer.getOffset() << " of " << m_incomingMessagesBuffer.getSize()
+        << std::endl;
+
+    if(/*messageCode.getValue() == -1*/ false)
+    {
+
+    }
+    else
+    {
+        // Skip
+        const int nBytesToSkip = messageSize.getValue() - messageCode.getSizeAsArray();
+        std::cout << "Skipping " << messageSize.getValue() << " bytes." << std::endl;
+        m_incomingMessagesBuffer.moveOffset(nBytesToSkip);
+    }
+
+    return true;
+
 }
 
 //----------------------------------------------------------------------------//

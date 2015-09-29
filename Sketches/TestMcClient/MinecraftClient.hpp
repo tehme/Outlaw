@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QTcpSocket>
+#include "MessageBuffer.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -22,12 +23,19 @@ public:
 private slots:
     void onSocketConnected();
     void onSocketError(QAbstractSocket::SocketError socketError);
-    void readDataFromSocket();
+    void onSocketReadyRead();
 
 private:
-    QTcpSocket m_socket;
-    QString    m_host;
-    ushort     m_port;
+    // This should be a slot.
+    void handleMessages();
+    bool handleNextMessage();
+
+private:
+    QTcpSocket    m_socket;
+    QString       m_host;
+    ushort        m_port;
+
+    MessageBuffer m_incomingMessagesBuffer;
 };
 
 //----------------------------------------------------------------------------//

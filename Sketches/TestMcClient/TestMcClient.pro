@@ -19,11 +19,13 @@ SOURCES += \
     MinecraftClient.cpp \
     MessageBuffer.cpp \
     VarInt.cpp \
-    BinaryUtils.cpp
+    BinaryUtils.cpp \
+    BaseGameState.cpp
 
 HEADERS += \
     MinecraftClient.hpp \
     MessageBuffer.hpp \
     VarInt.hpp \
-    BinaryUtils.hpp
+    BinaryUtils.hpp \
+    BaseGameState.hpp
 

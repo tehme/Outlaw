@@ -8,6 +8,15 @@
 
 //----------------------------------------------------------------------------//
 
+enum class ServerState
+{
+    Status,
+    Login,
+    Play,
+
+    Undefined
+};
+
 class MinecraftClient : public QObject
 {
     Q_OBJECT
@@ -30,12 +39,18 @@ private:
     void handleMessages();
     bool handleNextMessage();
 
+    // Potential virtual function for game state objects/parser objects.
+    static bool isMessageSupported(ServerState currentServerState, int code);
+
 private:
     QTcpSocket    m_socket;
     QString       m_host;
     ushort        m_port;
 
     MessageBuffer m_incomingMessagesBuffer;
+
+    // Game state fields. TODO: extract?
+    ServerState   m_serverState;
 };
 
 //----------------------------------------------------------------------------//

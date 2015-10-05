@@ -9,7 +9,8 @@ MinecraftClient::MinecraftClient(QObject *parent) :
     QObject(parent),
     m_socket(),
     m_host(),
-    m_port(0)
+    m_port(0),
+    m_serverState(ServerState::Undefined)
 {
     connect(&m_socket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
     connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
@@ -76,6 +77,8 @@ Next State 	VarInt 	1 for status, 2 for login
     m_socket.write(loginStartBuffer.getAllBytes());
 
     m_socket.flush();
+
+    m_serverState = ServerState::Login;
 }
 
 void MinecraftClient::sendServerListPing()
@@ -86,6 +89,8 @@ void MinecraftClient::sendServerListPing()
     m_socket.write(data);
 }
 
+//----------------------------------------------------------------------------//
+
 void MinecraftClient::onSocketConnected()
 {
     qDebug() << "Socket connected!";
@@ -95,8 +100,6 @@ void MinecraftClient::onSocketError(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "Socket error!" << socketError;
 }
-
-//----------------------------------------------------------------------------//
 
 void MinecraftClient::onSocketReadyRead()
 {
@@ -132,9 +135,9 @@ void MinecraftClient::handleMessages()
 
 //    std::cout << std::endl << "Response data end" << std::endl;
 
-    std::cout << "Received data dump:" << std::endl;
-    BinaryUtils::dumpHex(m_incomingMessagesBuffer.getAllBytes());
-    std::cout << "Received data dump end" << std::endl;
+//    std::cout << "Received data dump:" << std::endl;
+//    BinaryUtils::dumpHex(m_incomingMessagesBuffer.getAllBytes());
+//    std::cout << "Received data dump end" << std::endl;
 
     while(m_incomingMessagesBuffer.getSize() > 0 && handleNextMessage())
     {
@@ -176,7 +179,31 @@ bool MinecraftClient::handleNextMessage()
         << "Offset: " << std::dec << m_incomingMessagesBuffer.getOffset() << " of " << m_incomingMessagesBuffer.getSize()
         << std::endl;
 
-    if(/*messageCode.getValue() == -1*/ false)
+    if(m_serverState == ServerState::Login && messageCode.getValue() == 0x02)
+    {
+        m_serverState = ServerState::Play;
+
+        const int nBytesToSkip = messageSize.getValue() - messageCode.getSizeAsArray();
+        std::cout << "Skipping " << messageSize.getValue() << " bytes (login success)." << std::endl;
+        m_incomingMessagesBuffer.moveOffset(nBytesToSkip);
+    }
+    else if(m_serverState == ServerState::Play && messageCode.getValue() == 0x00) // keep-alive
+    {
+        // TODO: schedule sending? Or does socket already do it?
+        VarInt keepAliveId;
+        m_incomingMessagesBuffer >> keepAliveId;
+
+        std::cout << "Got keep-alive with id " << keepAliveId.getValue() << ". Sending it back." << std::endl;
+
+        MessageBuffer buffer;
+        buffer
+            << VarInt(1 + keepAliveId.getSizeAsArray()) // size: code + keep-alive id. TODO: function to write to socket with size.
+            << VarInt(0x00)
+            << keepAliveId;
+
+        m_socket.write(buffer.getAllBytes());
+    }
+    else if(/*messageCode.getValue() == -1*/ false)
     {
 
     }
@@ -190,6 +217,15 @@ bool MinecraftClient::handleNextMessage()
 
     return true;
 
+}
+
+bool MinecraftClient::isMessageSupported(ServerState currentServerState, int code)
+{
+    // TODO: query handlers instead of hard-coding this.
+    if(currentServerState == ServerState::Login && code == 0x02) // this sets server state to Play
+        return true;
+
+    return false;
 }
 
 //----------------------------------------------------------------------------//

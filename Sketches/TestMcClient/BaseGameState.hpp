@@ -4,13 +4,25 @@
 #include <QObject>
 #include <QByteArray>
 
+//----------------------------------------------------------------------------//
+
+enum class ServerState
+{
+    Status,
+    Login,
+    Play,
+
+    Undefined
+};
+
+//----------------------------------------------------------------------------//
 
 class BaseGameState : public QObject
 {
     Q_OBJECT
 
 public:
-    BaseGameState(QObject * parent = nullptr);
+    explicit BaseGameState(QObject * parent = nullptr);
     virtual ~BaseGameState() override;
 
 signals:
@@ -20,5 +32,6 @@ public slots:
     virtual void onMessageReceived(QByteArray data) = 0;
 };
 
+//----------------------------------------------------------------------------//
 
 #endif // BASEGAMESTATE_HPP

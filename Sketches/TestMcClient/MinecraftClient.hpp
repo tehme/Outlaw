@@ -8,15 +8,6 @@
 
 //----------------------------------------------------------------------------//
 
-enum class ServerState
-{
-    Status,
-    Login,
-    Play,
-
-    Undefined
-};
-
 class MinecraftClient : public QObject
 {
     Q_OBJECT

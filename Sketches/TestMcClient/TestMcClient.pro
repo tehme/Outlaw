@@ -14,18 +14,19 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += \
-    TestMcClient_Main.cpp \
-    MinecraftClient.cpp \
-    MessageBuffer.cpp \
-    VarInt.cpp \
-    BinaryUtils.cpp \
-    BaseGameState.cpp
-
 HEADERS += \
-    MinecraftClient.hpp \
+    TcpClient.hpp \
     MessageBuffer.hpp \
     VarInt.hpp \
     BinaryUtils.hpp \
-    BaseGameState.hpp
+    BaseGameState.hpp \
+    TestGameState.hpp
 
+SOURCES += \
+    TestMcClient_Main.cpp \
+    TcpClient.cpp \
+    MessageBuffer.cpp \
+    VarInt.cpp \
+    BinaryUtils.cpp \
+    BaseGameState.cpp \
+    TestGameState.cpp

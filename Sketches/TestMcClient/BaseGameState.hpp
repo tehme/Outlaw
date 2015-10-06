@@ -26,6 +26,7 @@ public:
     virtual ~BaseGameState() override;
 
 signals:
+    // Data should be without length bytes.
     void messageSent(QByteArray data);
 
 public slots:

@@ -1,5 +1,5 @@
-#ifndef MINECRAFTCLIENT_H
-#define MINECRAFTCLIENT_H
+#ifndef TCPCLIENT_H
+#define TCPCLIENT_H
 
 #include <QObject>
 #include <QString>
@@ -8,17 +8,22 @@
 
 //----------------------------------------------------------------------------//
 
-class MinecraftClient : public QObject
+class TcpClient : public QObject
 {
     Q_OBJECT
 
 public:
-    MinecraftClient(QObject *parent = nullptr);
-    virtual ~MinecraftClient();
+    TcpClient(QObject * parent = nullptr);
+    virtual ~TcpClient();
 
-    void connectToHost(const QString &host, const quint16 port);
-    void sendHandshake();
+    void connectToHost(const QString & host, const quint16 port);
     void sendServerListPing();
+
+signals:
+    void messageRead(QByteArray data);
+
+public slots:
+    void writeMessage(QByteArray data);
 
 private slots:
     void onSocketConnected();
@@ -30,20 +35,14 @@ private:
     void handleMessages();
     bool handleNextMessage();
 
-    // Potential virtual function for game state objects/parser objects.
-    static bool isMessageSupported(ServerState currentServerState, int code);
-
 private:
     QTcpSocket    m_socket;
     QString       m_host;
     ushort        m_port;
 
     MessageBuffer m_incomingMessagesBuffer;
-
-    // Game state fields. TODO: extract?
-    ServerState   m_serverState;
 };
 
 //----------------------------------------------------------------------------//
 
-#endif // MINECRAFTCLIENT_H
+#endif // TCPCLIENT_H

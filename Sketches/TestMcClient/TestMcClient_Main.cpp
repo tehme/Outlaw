@@ -1,7 +1,8 @@
 #include <QCoreApplication>
 #include <QTcpSocket>
 #include <QDebug>
-#include "MinecraftClient.hpp"
+#include "TcpClient.hpp"
+#include "TestGameState.hpp"
 
 #include "MessageBuffer.hpp"
 #include "VarInt.hpp"
@@ -17,9 +18,18 @@ int main(int argc, char *argv[])
     const QString host = "localhost";
     const ushort  port = 25565;
 
-    MinecraftClient client;
+    TcpClient client;
+    TestGameState gameState;
+
+    QObject::connect(&client, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onMessageReceived(QByteArray)));
+    QObject::connect(&gameState, SIGNAL(messageSent(QByteArray)), &client, SLOT(writeMessage(QByteArray)));
+
     client.connectToHost(host, port);
-    client.sendHandshake();
+
+    gameState.setHost(host);
+    gameState.setPort(port);
+    gameState.setUserName("tehme");
+    gameState.run();
 
     freopen("output.txt","w", stdout);
 

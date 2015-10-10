@@ -104,8 +104,16 @@ void MessageBuffer::writeBytesToBuffer(const char * bytes, int size)
 
 MessageBuffer & operator << (MessageBuffer & buffer, float src)
 {
-    quint32 srcAsUint = reinterpret_cast<quint32 &>(src);
+    quint32 srcAsUint = reinterpret_cast<const quint32 &>(src);
     buffer << srcAsUint;
+
+    return buffer;
+}
+
+MessageBuffer & operator << (MessageBuffer & buffer, double src)
+{
+    quint64 srcAsUint64 = reinterpret_cast<const quint64 &>(src);
+    buffer << srcAsUint64;
 
     return buffer;
 }
@@ -126,7 +134,17 @@ MessageBuffer & operator >> (MessageBuffer & buffer, float & dst)
     quint32 dstAsUint;
     buffer >> dstAsUint;
 
-    dst = reinterpret_cast<float &>(dstAsUint);
+    dst = reinterpret_cast<const float &>(dstAsUint);
+
+    return buffer;
+}
+
+MessageBuffer & operator >> (MessageBuffer & buffer, double & dst)
+{
+    quint64 dstAsUint64;
+    buffer >> dstAsUint64;
+
+    dst = reinterpret_cast<const double &>(dstAsUint64);
 
     return buffer;
 }

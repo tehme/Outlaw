@@ -49,9 +49,8 @@ private:
 template<typename IntType>
 MessageBuffer & operator << (MessageBuffer & buffer, IntType src);
 
-// TODO: float/double (mb IntType version will fit, if they store floats big endian)
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, float src);
-
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, double src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QString & src);
 
 //----------------------------------------------------------------------------//
@@ -60,7 +59,7 @@ template<typename IntType>
 MessageBuffer & operator >> (MessageBuffer & buffer, IntType & dst);
 
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, float & dst);
-
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, double & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst);
 
 //----------------------------------------------------------------------------//

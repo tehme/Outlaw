@@ -1,6 +1,7 @@
 #ifndef TESTGAMESTATE_HPP
 #define TESTGAMESTATE_HPP
 
+#include <QTimer>
 #include <NetworkClient/BaseGameState.hpp>
 #include <NetworkClient/MessageBuffer.hpp>
 
@@ -19,10 +20,13 @@ public:
     void setUserName(const QString & userName);
 
 signals:
+    // TODO: split to different sketches.
     void entitySpawned(int entityId, int x, int y, int z);
     void entityDestroyed(int entityId);
     void entityPositionChanged(int entityId, int x, int y, int z, bool isRelative);
 
+    void timeChanged(qint64 time);
+    void healthChanged(float health);
 
 public slots:
     virtual void onInboundMessage(QByteArray data) override;
@@ -33,7 +37,10 @@ private:
     void sendLoginHandshake();
     void sendLoginStart();
 
-    void tryHandleEntityMessage(int messageCode, NetworkClient::MessageBuffer & buffer);
+    bool tryHandleEntityMessage(int messageCode, NetworkClient::MessageBuffer & buffer);
+
+private slots:
+    void onPlayerPositionTimer();
 
 private:
     NetworkClient::ServerState m_serverState; // Move to base class?
@@ -42,6 +49,8 @@ private:
     QString    m_host;
     quint16    m_port;
     QString    m_userName;
+
+    QTimer     m_playerPositionTimer;
 };
 
 //----------------------------------------------------------------------------//

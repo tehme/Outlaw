@@ -102,9 +102,17 @@ void MessageBuffer::writeBytesToBuffer(const char * bytes, int size)
 
 //----------------------------------------------------------------------------//
 
-MessageBuffer & operator << (MessageBuffer & buffer, const QString & s)
+MessageBuffer & operator << (MessageBuffer & buffer, float src)
 {
-    QByteArray utf8Bytes = s.toUtf8();
+    quint32 srcAsUint = reinterpret_cast<quint32 &>(src);
+    buffer << srcAsUint;
+
+    return buffer;
+}
+
+MessageBuffer & operator << (MessageBuffer & buffer, const QString & src)
+{
+    QByteArray utf8Bytes = src.toUtf8();
     buffer << VarInt(utf8Bytes.size());
     buffer.writeBytesToBuffer(utf8Bytes);
 
@@ -113,7 +121,17 @@ MessageBuffer & operator << (MessageBuffer & buffer, const QString & s)
 
 //----------------------------------------------------------------------------//
 
-MessageBuffer & operator >> (MessageBuffer & buffer, QString & s)
+MessageBuffer & operator >> (MessageBuffer & buffer, float & dst)
+{
+    quint32 dstAsUint;
+    buffer >> dstAsUint;
+
+    dst = reinterpret_cast<float &>(dstAsUint);
+
+    return buffer;
+}
+
+MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst)
 {
     const int startingOffset = buffer.getOffset();
 
@@ -124,7 +142,7 @@ MessageBuffer & operator >> (MessageBuffer & buffer, QString & s)
 
         QByteArray utf8Bytes = buffer.readBytesFromBuffer(size.getValue());
 
-        s = QString::fromUtf8(utf8Bytes);
+        dst = QString::fromUtf8(utf8Bytes);
     }
     catch(...)
     {

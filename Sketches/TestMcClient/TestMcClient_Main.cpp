@@ -5,7 +5,8 @@
 #include <NetworkClient/VarInt.hpp>
 #include "TestGameState.hpp"
 #include "BinaryUtils.hpp"
-#include "MobRadarWidget.hpp"
+//#include "MobRadarWidget.hpp"
+#include "StatsWidget.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -27,19 +28,23 @@ int main(int argc, char *argv[])
     QObject::connect(&client, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onInboundMessage(QByteArray)));
     QObject::connect(&gameState, SIGNAL(outboundMessage(QByteArray)), &client, SLOT(writeMessage(QByteArray)));
 
-    MobRadarWidget mobRadarWidget(0, 0, 1);
-    QObject::connect(
-        &gameState,      SIGNAL(entitySpawned(int,int,int,int)),
-        &mobRadarWidget, SLOT(onEntitySpawned(int,int,int,int)));
-    QObject::connect(
-        &gameState,      SIGNAL(entityDestroyed(int)),
-        &mobRadarWidget, SLOT(onEntityDestroyed(int)));
-    QObject::connect(
-        &gameState,      SIGNAL(entityPositionChanged(int,int,int,int,bool)),
-        &mobRadarWidget, SLOT(onEntityPositionChanged(int,int,int,int,bool)));
+    // TODO: create separate sketch for mob radar.
+//    MobRadarWidget mobRadarWidget(0, 0, 1);
+//    QObject::connect(
+//        &gameState,      SIGNAL(entitySpawned(int,int,int,int)),
+//        &mobRadarWidget, SLOT(onEntitySpawned(int,int,int,int)));
+//    QObject::connect(
+//        &gameState,      SIGNAL(entityDestroyed(int)),
+//        &mobRadarWidget, SLOT(onEntityDestroyed(int)));
+//    QObject::connect(
+//        &gameState,      SIGNAL(entityPositionChanged(int,int,int,int,bool)),
+//        &mobRadarWidget, SLOT(onEntityPositionChanged(int,int,int,int,bool)));
+//    mobRadarWidget.show();
 
-
-    mobRadarWidget.show();
+    StatsWidget statsWidget;
+    QObject::connect(&gameState, SIGNAL(timeChanged(qint64)), &statsWidget, SLOT(onTimeChanged(qint64)));
+    QObject::connect(&gameState, SIGNAL(healthChanged(float)), &statsWidget, SLOT(onHealthChanged(float)));
+    statsWidget.show();
 
     client.connectToHost(host, port);
 
@@ -48,7 +53,7 @@ int main(int argc, char *argv[])
     gameState.setUserName("tehme");
     gameState.run();
 
-    freopen("output.txt","w", stdout);
+    freopen("output.txt", "w", stdout);
 
     return a.exec();
 }

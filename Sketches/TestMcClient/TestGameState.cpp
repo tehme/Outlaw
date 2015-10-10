@@ -1,7 +1,9 @@
 #include "TestGameState.hpp"
 #include <iostream>
+#include <iomanip>
 #include <QByteArray>
 #include <QString>
+#include <QDebug>
 #include <NetworkClient/VarInt.hpp>
 
 //----------------------------------------------------------------------------//
@@ -17,6 +19,9 @@ TestGameState::TestGameState(QObject * parent) :
     m_port(0),
     m_userName()
 {
+    m_playerPositionTimer.setInterval(1000);
+    m_playerPositionTimer.setSingleShot(false);
+    connect(&m_playerPositionTimer, SIGNAL(timeout()), this, SLOT(onPlayerPositionTimer()));
 }
 
 TestGameState::~TestGameState()
@@ -49,7 +54,8 @@ void TestGameState::onInboundMessage(QByteArray data)
 
     std::cout
         << "Message received! Size: " << data.size()
-        << "; code: " << messageCode.getValue()
+        << "; code: 0x" << std::hex << std::setfill('0') << std::setw(2) << messageCode.getValue()
+        << std::dec << " (" << messageCode.getValue() << ")"
         << "; game state: " << static_cast<int>(m_serverState)
         << std::endl;
 
@@ -58,6 +64,7 @@ void TestGameState::onInboundMessage(QByteArray data)
         if(messageCode.getValue() == 0x02) // login success
         {
             m_serverState = ServerState::Play;
+            m_playerPositionTimer.start();
         }
     }
     else if(m_serverState == ServerState::Play)
@@ -68,9 +75,29 @@ void TestGameState::onInboundMessage(QByteArray data)
             std::cout << "Got keep-alive!" << std::endl;
             emit outboundMessage(data);
         }
+        else if(messageCode.getValue() == 0x03) // time update
+        {
+            qint64 worldAge, timeOfDay;
+            buffer >> worldAge >> timeOfDay;
+
+            emit timeChanged(timeOfDay);
+        }
+        else if(messageCode.getValue() == 0x06) // health update
+        {
+            float health;
+//            VarInt food;
+//            float foodOvercharge;
+
+            buffer >> health;
+
+            qDebug() << "Health changed to" << health;
+            emit healthChanged(health);
+        }
+        else if(tryHandleEntityMessage(messageCode.getValue(), buffer))
+        {
+        }
         else
         {
-            tryHandleEntityMessage(messageCode.getValue(), buffer);
         }
     }
 }
@@ -118,12 +145,12 @@ void TestGameState::sendLoginStart()
     emit outboundMessage(bufferBytes);
 }
 
-void TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buffer)
+bool TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buffer)
 {
     if(m_serverState != ServerState::Play)
     {
         //TODO: warning
-        return;
+        return false;
     }
 
     static const int spawnMobCode = 0x0F;
@@ -143,7 +170,7 @@ void TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buff
 
     if(!supportedMessages.contains(messageCode))
     {
-        return;
+        return false;
     }
 
     switch(messageCode)
@@ -214,6 +241,16 @@ void TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buff
             break;
         }
     }
+
+    return true;
+}
+
+void TestGameState::onPlayerPositionTimer()
+{
+    MessageBuffer buffer;
+    buffer << VarInt(0x03) << true;
+
+    emit outboundMessage(buffer.getAllBytes());
 }
 
 //----------------------------------------------------------------------------//

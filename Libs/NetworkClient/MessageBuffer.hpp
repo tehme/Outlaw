@@ -47,30 +47,33 @@ private:
 //----------------------------------------------------------------------------//
 
 template<typename IntType>
-MessageBuffer & operator << (MessageBuffer & buffer, IntType i);
+MessageBuffer & operator << (MessageBuffer & buffer, IntType src);
 
 // TODO: float/double (mb IntType version will fit, if they store floats big endian)
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, float src);
 
-NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QString & s);
-
-//----------------------------------------------------------------------------//
-
-template<typename IntType>
-MessageBuffer & operator >> (MessageBuffer & buffer, IntType & i);
-
-NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QString & s);
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QString & src);
 
 //----------------------------------------------------------------------------//
 
 template<typename IntType>
-MessageBuffer & operator << (MessageBuffer & buffer, IntType i)
+MessageBuffer & operator >> (MessageBuffer & buffer, IntType & dst);
+
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, float & dst);
+
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst);
+
+//----------------------------------------------------------------------------//
+
+template<typename IntType>
+MessageBuffer & operator << (MessageBuffer & buffer, IntType src)
 {
-    const int varSize = sizeof(i);
+    const int varSize = sizeof(src);
 
-    char iAsBytes[varSize];
-    qToBigEndian(i, reinterpret_cast<uchar *>(iAsBytes));
+    char srcAsBytes[varSize];
+    qToBigEndian(src, reinterpret_cast<uchar *>(srcAsBytes));
 
-    buffer.writeBytesToBuffer(iAsBytes, varSize);
+    buffer.writeBytesToBuffer(srcAsBytes, varSize);
 
     return buffer;
 }
@@ -78,9 +81,9 @@ MessageBuffer & operator << (MessageBuffer & buffer, IntType i)
 //----------------------------------------------------------------------------//
 
 template<typename IntType>
-MessageBuffer & operator >> (MessageBuffer & buffer, IntType & i)
+MessageBuffer & operator >> (MessageBuffer & buffer, IntType & dst)
 {
-    const int varSize = sizeof(i);
+    const int varSize = sizeof(dst);
 
     QByteArray bytes = buffer.readBytesFromBuffer(varSize);
     if(bytes.size() < varSize)
@@ -89,7 +92,7 @@ MessageBuffer & operator >> (MessageBuffer & buffer, IntType & i)
         throw MessageBuffer::NotEnoughBytesException();
     }
 
-    i = qFromBigEndian<IntType>(reinterpret_cast<const uchar *>(bytes.constData()));
+    dst = qFromBigEndian<IntType>(reinterpret_cast<const uchar *>(bytes.constData()));
 
     return buffer;
 }

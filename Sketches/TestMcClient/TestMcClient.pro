@@ -23,13 +23,16 @@ LIBS += -L../../$${BUILTDIR}/Libs -lNetworkClient
 HEADERS += \
     BinaryUtils.hpp \
     TestGameState.hpp \
-    MobRadarWidget.hpp
+    MobRadarWidget.hpp \
+    StatsWidget.hpp
 
 SOURCES += \
     TestMcClient_Main.cpp \
     BinaryUtils.cpp \
     TestGameState.cpp \
-    MobRadarWidget.cpp
+    MobRadarWidget.cpp \
+    StatsWidget.cpp
 
 FORMS += \
-    MobRadarWidget.ui
+    MobRadarWidget.ui \
+    StatsWidget.ui

@@ -16,11 +16,13 @@ HEADERS += \
     VarInt.hpp \
     MessageBuffer.hpp \
     TcpClient.hpp \
-    BaseGameState.hpp
+    BaseGameState.hpp \
+    PacketsV47.hpp
 
 
 SOURCES += \
     VarInt.cpp \
     MessageBuffer.cpp \
     TcpClient.cpp \
-    BaseGameState.cpp
+    BaseGameState.cpp \
+    PacketsV47.cpp

@@ -6,10 +6,13 @@
 #include <QDateTime>
 #include <QDebug>
 #include <NetworkClient/VarInt.hpp>
+#include <NetworkClient/PacketsV47.hpp>
 
 //----------------------------------------------------------------------------//
 
 using namespace NetworkClient;
+namespace cb47 = NetworkClient::PacketsV47::Clientbound;
+namespace sb47 = NetworkClient::PacketsV47::Serverbound;
 
 //----------------------------------------------------------------------------//
 
@@ -115,7 +118,14 @@ void TestGameState::onInboundMessage(QByteArray data)
             {
                 m_playerPositionInitialized = true;
 
-                buffer >> m_playerX >> m_playerY >> m_playerZ >> m_playerYaw >> m_playerPitch;
+                cb47::PlayerPositionAndLook posLookPacket;
+
+                buffer >> posLookPacket;
+                m_playerX = posLookPacket.m_x;
+                m_playerY = posLookPacket.m_y;
+                m_playerZ = posLookPacket.m_z;
+                m_playerYaw = posLookPacket.m_yaw;
+                m_playerPitch = posLookPacket.m_pitch;
                 std::cout
                     << "Received player position and look!" << std::endl
                     << m_playerX << " " << m_playerY << " " << m_playerZ << " " << m_playerYaw << " " << m_playerPitch << std::endl;
@@ -220,7 +230,7 @@ bool TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buff
             int y = double(yFixed) / 32;
             int z = double(zFixed) / 32;
 
-            emit entitySpawned(entityId.getValue(), x, y, z);
+            emit entitySpawned(entityId.getValue(), mobType, x, y, z);
             break;
         }
 
@@ -280,19 +290,10 @@ bool TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buff
 
 void TestGameState::onTickTimer()
 {
-    static const int playerPosLookServerbound = 0x06;
-
     if(m_playerPositionInitialized)
     {
         MessageBuffer buffer;
-        buffer
-            << VarInt(playerPosLookServerbound)
-            << m_playerX
-            << m_playerY
-            << m_playerZ
-            << m_playerYaw
-            << m_playerPitch
-            << true;
+        buffer << sb47::PlayerPositionAndLook(m_playerX, m_playerY, m_playerZ, m_playerYaw, m_playerPitch, true);
 
         emit outboundMessage(buffer.getAllBytes());
     }

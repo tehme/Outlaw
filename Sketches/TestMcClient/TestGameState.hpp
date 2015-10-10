@@ -27,6 +27,7 @@ signals:
 
     void timeChanged(qint64 time);
     void healthChanged(float health);
+    void foodChanged(int food, float saturation);
 
 public slots:
     virtual void onInboundMessage(QByteArray data) override;
@@ -40,7 +41,7 @@ private:
     bool tryHandleEntityMessage(int messageCode, NetworkClient::MessageBuffer & buffer);
 
 private slots:
-    void onPlayerPositionTimer();
+    void onTickTimer();
 
 private:
     NetworkClient::ServerState m_serverState; // Move to base class?
@@ -50,7 +51,15 @@ private:
     quint16    m_port;
     QString    m_userName;
 
-    QTimer     m_playerPositionTimer;
+    QTimer     m_tickTimer;
+
+    bool       m_playerPositionInitialized;
+    double     m_playerX;
+    double     m_playerY;
+    double     m_playerZ;
+    float      m_playerYaw;
+    float      m_playerPitch;
+
 };
 
 //----------------------------------------------------------------------------//

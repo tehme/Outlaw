@@ -30,3 +30,8 @@ void StatsWidget::onHealthChanged(float health)
 {
     ui->labelHealth->setText(QString::number(health));
 }
+
+void StatsWidget::onFoodChanged(int food, float saturation)
+{
+    ui->labelFood->setText(QString("%1+%2").arg(food).arg(saturation));
+}

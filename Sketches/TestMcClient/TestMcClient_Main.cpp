@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     StatsWidget statsWidget;
     QObject::connect(&gameState, SIGNAL(timeChanged(qint64)), &statsWidget, SLOT(onTimeChanged(qint64)));
     QObject::connect(&gameState, SIGNAL(healthChanged(float)), &statsWidget, SLOT(onHealthChanged(float)));
+    QObject::connect(&gameState, SIGNAL(foodChanged(int,float)), &statsWidget, SLOT(onFoodChanged(int,float)));
     statsWidget.show();
 
     client.connectToHost(host, port);

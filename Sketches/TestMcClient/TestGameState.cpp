@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <QByteArray>
 #include <QString>
+#include <QDateTime>
 #include <QDebug>
 #include <NetworkClient/VarInt.hpp>
 
@@ -17,11 +18,18 @@ TestGameState::TestGameState(QObject * parent) :
     m_serverState(ServerState::Undefined),
     m_host(),
     m_port(0),
-    m_userName()
+    m_userName(),
+    m_tickTimer(),
+    m_playerPositionInitialized(false),
+    m_playerX(0.0),
+    m_playerY(0.0),
+    m_playerZ(0.0),
+    m_playerYaw(0.0f),
+    m_playerPitch(0.0f)
 {
-    m_playerPositionTimer.setInterval(1000);
-    m_playerPositionTimer.setSingleShot(false);
-    connect(&m_playerPositionTimer, SIGNAL(timeout()), this, SLOT(onPlayerPositionTimer()));
+    m_tickTimer.setInterval(1000 / 20); // 20 ticks per second
+    m_tickTimer.setSingleShot(false);
+    connect(&m_tickTimer, SIGNAL(timeout()), this, SLOT(onTickTimer()));
 }
 
 TestGameState::~TestGameState()
@@ -64,7 +72,7 @@ void TestGameState::onInboundMessage(QByteArray data)
         if(messageCode.getValue() == 0x02) // login success
         {
             m_serverState = ServerState::Play;
-            m_playerPositionTimer.start();
+            m_tickTimer.start();
         }
     }
     else if(m_serverState == ServerState::Play)
@@ -82,16 +90,34 @@ void TestGameState::onInboundMessage(QByteArray data)
 
             emit timeChanged(timeOfDay);
         }
-        else if(messageCode.getValue() == 0x06) // health update
+        else if(messageCode.getValue() == 0x06) // health/food update
         {
             float health;
-//            VarInt food;
-//            float foodOvercharge;
+            VarInt food;
+            float saturation;
 
-            buffer >> health;
+            buffer >> health >> food >> saturation;
 
             qDebug() << "Health changed to" << health;
             emit healthChanged(health);
+            emit foodChanged(food.getValue(), saturation);
+        }
+        else if(messageCode.getValue() == 0x08) // player position and look
+        {
+            if(!m_playerPositionInitialized)
+            {
+                m_playerPositionInitialized = true;
+
+                buffer >> m_playerX >> m_playerY >> m_playerZ >> m_playerYaw >> m_playerPitch;
+                std::cout
+                    << "Received player position and look!" << std::endl
+                    << m_playerX << " " << m_playerY << " " << m_playerZ << " " << m_playerYaw << " " << m_playerPitch << std::endl;
+            }
+            else
+            {
+                // response to wrong motion. TODO: resend received values.
+                std::cout << "Received player position and look as response to wrong motion" << std::endl;
+            }
         }
         else if(tryHandleEntityMessage(messageCode.getValue(), buffer))
         {
@@ -245,12 +271,24 @@ bool TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buff
     return true;
 }
 
-void TestGameState::onPlayerPositionTimer()
+void TestGameState::onTickTimer()
 {
-    MessageBuffer buffer;
-    buffer << VarInt(0x03) << true;
+    static const int playerPosLookServerbound = 0x06;
 
-    emit outboundMessage(buffer.getAllBytes());
+    if(m_playerPositionInitialized)
+    {
+        MessageBuffer buffer;
+        buffer
+            << VarInt(playerPosLookServerbound)
+            << m_playerX
+            << m_playerY
+            << m_playerZ
+            << m_playerYaw
+            << m_playerPitch
+            << true;
+
+        emit outboundMessage(buffer.getAllBytes());
+    }
 }
 
 //----------------------------------------------------------------------------//

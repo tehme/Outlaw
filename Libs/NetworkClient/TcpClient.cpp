@@ -1,6 +1,7 @@
 #include "TcpClient.hpp"
 #include <iostream>
 #include <iomanip>
+#include <QtEndian>
 #include "VarInt.hpp"
 
 //----------------------------------------------------------------------------//
@@ -13,7 +14,8 @@ TcpClient::TcpClient(QObject *parent) :
     QObject(parent),
     m_socket(),
     m_host(),
-    m_port(0)
+    m_port(0),
+    m_compressionThreshold(-1)
 {
     connect(&m_socket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
     connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
@@ -33,24 +35,44 @@ void TcpClient::connectToHost(const QString & host, const quint16 port)
     m_socket.waitForConnected(); // TODO: remove this and re-emit signals.
 }
 
-void TcpClient::sendServerListPing()
-{
-    QByteArray data;
-    data.append(char(0xfe));
-    data.append(char(0x01));
-    m_socket.write(data);
-}
-
 //----------------------------------------------------------------------------//
 
 void TcpClient::writeMessage(QByteArray data)
 {
     MessageBuffer sizeBuffer;
-    sizeBuffer << VarInt(data.size());
+
+    const bool isCompressionEnabled = (m_compressionThreshold > -1);
+
+    if(isCompressionEnabled)
+    {
+        VarInt uncompressedSize;
+
+        if(data.size() >= m_compressionThreshold)
+        {
+            uncompressedSize.setValue(data.size());
+            data = qCompress(data);
+        }
+        else
+        {
+            uncompressedSize.setValue(0);
+        }
+
+        // Full packet size; uncompressed data size
+        sizeBuffer << VarInt(data.size() + uncompressedSize.getSizeAsArray()) << uncompressedSize;
+    }
+    else
+    {
+        sizeBuffer << VarInt(data.size());
+    }
 
     m_socket.write(sizeBuffer.getAllBytes());
     m_socket.write(data);
     m_socket.flush();
+}
+
+void TcpClient::setCompressionThreshold(int threshold)
+{
+    m_compressionThreshold = threshold;
 }
 
 //----------------------------------------------------------------------------//
@@ -108,7 +130,32 @@ bool TcpClient::handleNextMessage()
         return false;
     }
 
-    QByteArray messageBytes = m_incomingMessagesBuffer.readBytesFromBuffer(messageSize.getValue());
+    QByteArray messageBytes;
+
+    const bool isCompressionEnabled = (m_compressionThreshold > -1);
+    if(isCompressionEnabled)
+    {
+        VarInt decompressedSize;
+        m_incomingMessagesBuffer >> decompressedSize;
+
+        const bool isCompressed = (decompressedSize.getValue() != 0);
+        const int nBytesToRead = messageSize.getValue() - decompressedSize.getSizeAsArray();
+
+        messageBytes = m_incomingMessagesBuffer.readBytesFromBuffer(nBytesToRead);
+
+        if(isCompressed)
+        {
+            uchar compressedSize[4];
+            qToBigEndian(messageBytes.size(), compressedSize);
+
+            messageBytes.prepend(reinterpret_cast<char *>(compressedSize), 4);
+            messageBytes = qUncompress(messageBytes);
+        }
+    }
+    else
+    {
+        messageBytes = m_incomingMessagesBuffer.readBytesFromBuffer(messageSize.getValue());
+    }
 
     emit messageRead(messageBytes);
 

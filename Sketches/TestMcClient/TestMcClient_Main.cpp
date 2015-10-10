@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(&client, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onInboundMessage(QByteArray)));
     QObject::connect(&gameState, SIGNAL(outboundMessage(QByteArray)), &client, SLOT(writeMessage(QByteArray)));
+    QObject::connect(&gameState, SIGNAL(compressionThresholdChanged(int)), &client, SLOT(setCompressionThreshold(int)));
 
     // TODO: create separate sketch for mob radar.
 //    MobRadarWidget mobRadarWidget(0, 0, 1);

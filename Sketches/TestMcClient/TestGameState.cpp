@@ -74,6 +74,13 @@ void TestGameState::onInboundMessage(QByteArray data)
             m_serverState = ServerState::Play;
             m_tickTimer.start();
         }
+        else if(messageCode.getValue() == 0x03) // set compression
+        {
+            VarInt threshold;
+            buffer >> threshold;
+
+            emit compressionThresholdChanged(threshold.getValue());
+        }
     }
     else if(m_serverState == ServerState::Play)
     {

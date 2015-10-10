@@ -22,13 +22,13 @@ public:
     virtual ~TcpClient();
 
     void connectToHost(const QString & host, const quint16 port);
-    void sendServerListPing();
 
 signals:
     void messageRead(QByteArray data);
 
 public slots:
     void writeMessage(QByteArray data);
+    void setCompressionThreshold(int threshold);
 
 private slots:
     void onSocketConnected();
@@ -43,6 +43,7 @@ private:
     QTcpSocket    m_socket;
     QString       m_host;
     ushort        m_port;
+    int           m_compressionThreshold;
 
     MessageBuffer m_incomingMessagesBuffer;
 };

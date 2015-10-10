@@ -21,6 +21,8 @@ public:
 
 signals:
     // TODO: split to different sketches.
+    void compressionThresholdChanged(int threshold);
+
     void entitySpawned(int entityId, int x, int y, int z);
     void entityDestroyed(int entityId);
     void entityPositionChanged(int entityId, int x, int y, int z, bool isRelative);

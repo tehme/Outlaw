@@ -1,5 +1,5 @@
-#ifndef NETWORKCLIENTGENERAL
-#define NETWORKCLIENTGENERAL
+#ifndef NETWORKCLIENTGENERAL_HPP
+#define NETWORKCLIENTGENERAL_HPP
 
 #include <QtGlobal>
 
@@ -13,4 +13,4 @@
 
 //----------------------------------------------------------------------------//
 
-#endif // NETWORKCLIENTGENERAL
+#endif // NETWORKCLIENTGENERAL_HPP

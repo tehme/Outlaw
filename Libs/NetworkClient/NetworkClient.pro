@@ -3,14 +3,11 @@ CONFIG += c++11
 TARGET = NetworkClient
 TEMPLATE = lib
 
-# Alternative: put everything to the same dir, but add 'd' postfix to debug libs.
-CONFIG(debug, debug|release) {
-    BUILDMODE = debug
-} else {
-    BUILDMODE = release
-}
+include(../../BuiltDir.pri)
 
-DESTDIR = ../../built/$${BUILDMODE}/Libs
+# Alternative: put everything to the same dir, but add 'd' postfix to debug libs.
+DESTDIR = ../../$${BUILTDIR}/Libs
+
 
 DEFINES += NETWORK_CLIENT_LIBRARY
 

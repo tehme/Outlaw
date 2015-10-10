@@ -1,13 +1,15 @@
 #include <QApplication>
 #include <QTcpSocket>
 #include <QDebug>
-#include "TcpClient.hpp"
+#include <NetworkClient/TcpClient.hpp>
+#include <NetworkClient/VarInt.hpp>
 #include "TestGameState.hpp"
-
-#include "MessageBuffer.hpp"
-#include "VarInt.hpp"
 #include "BinaryUtils.hpp"
 #include "MobRadarWidget.hpp"
+
+//----------------------------------------------------------------------------//
+
+using NetworkClient::TcpClient;
 
 //----------------------------------------------------------------------------//
 
@@ -22,8 +24,8 @@ int main(int argc, char *argv[])
     TcpClient client;
     TestGameState gameState;
 
-    QObject::connect(&client, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onMessageReceived(QByteArray)));
-    QObject::connect(&gameState, SIGNAL(messageSent(QByteArray)), &client, SLOT(writeMessage(QByteArray)));
+    QObject::connect(&client, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onInboundMessage(QByteArray)));
+    QObject::connect(&gameState, SIGNAL(outboundMessage(QByteArray)), &client, SLOT(writeMessage(QByteArray)));
 
     MobRadarWidget mobRadarWidget(0, 0, 1);
     QObject::connect(

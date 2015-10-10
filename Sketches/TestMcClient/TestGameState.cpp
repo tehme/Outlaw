@@ -2,6 +2,11 @@
 #include <iostream>
 #include <QByteArray>
 #include <QString>
+#include <NetworkClient/VarInt.hpp>
+
+//----------------------------------------------------------------------------//
+
+using namespace NetworkClient;
 
 //----------------------------------------------------------------------------//
 
@@ -35,7 +40,7 @@ void TestGameState::setUserName(const QString & userName)
 
 //----------------------------------------------------------------------------//
 
-void TestGameState::onMessageReceived(QByteArray data)
+void TestGameState::onInboundMessage(QByteArray data)
 {
     MessageBuffer buffer(data);
 
@@ -61,7 +66,7 @@ void TestGameState::onMessageReceived(QByteArray data)
         {
             // Echo keep-alive back, as serverbound message is equal to clientbound one (prot. v47).
             std::cout << "Got keep-alive!" << std::endl;
-            emit messageSent(data);
+            emit outboundMessage(data);
         }
         else
         {
@@ -98,7 +103,7 @@ void TestGameState::sendLoginHandshake()
         << VarInt(2);      // next state: login
 
     QByteArray bufferBytes = buffer.getAllBytes();
-    emit messageSent(bufferBytes);
+    emit outboundMessage(bufferBytes);
 }
 
 void TestGameState::sendLoginStart()
@@ -110,7 +115,7 @@ void TestGameState::sendLoginStart()
         << QString(m_userName);
 
     QByteArray bufferBytes = buffer.getAllBytes();
-    emit messageSent(bufferBytes);
+    emit outboundMessage(bufferBytes);
 }
 
 void TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buffer)

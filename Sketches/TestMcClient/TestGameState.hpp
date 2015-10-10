@@ -1,12 +1,12 @@
 #ifndef TESTGAMESTATE_HPP
 #define TESTGAMESTATE_HPP
 
-#include "BaseGameState.hpp"
-#include "MessageBuffer.hpp"
+#include <NetworkClient/BaseGameState.hpp>
+#include <NetworkClient/MessageBuffer.hpp>
 
 //----------------------------------------------------------------------------//
 
-class TestGameState : public BaseGameState
+class TestGameState : public NetworkClient::BaseGameState
 {
     Q_OBJECT
 
@@ -25,7 +25,7 @@ signals:
 
 
 public slots:
-    virtual void onMessageReceived(QByteArray data) override;
+    virtual void onInboundMessage(QByteArray data) override;
 
     void run();
 
@@ -33,10 +33,10 @@ private:
     void sendLoginHandshake();
     void sendLoginStart();
 
-    void tryHandleEntityMessage(int messageCode, MessageBuffer & buffer);
+    void tryHandleEntityMessage(int messageCode, NetworkClient::MessageBuffer & buffer);
 
 private:
-    ServerState m_serverState; // Move to base class?
+    NetworkClient::ServerState m_serverState; // Move to base class?
 
     // TODO: request from TcpClient or store here separately? Or even make parent object that knows this?
     QString    m_host;

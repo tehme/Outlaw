@@ -12,23 +12,22 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+include(../../BuiltDir.pri)
+
+DESTDIR = ../../$${BUILTDIR}/Sketches
+
+
+INCLUDEPATH += ../../Libs
+LIBS += -L../../$${BUILTDIR}/Libs -lNetworkClient
 
 HEADERS += \
-    TcpClient.hpp \
-    MessageBuffer.hpp \
-    VarInt.hpp \
     BinaryUtils.hpp \
-    BaseGameState.hpp \
     TestGameState.hpp \
     MobRadarWidget.hpp
 
 SOURCES += \
     TestMcClient_Main.cpp \
-    TcpClient.cpp \
-    MessageBuffer.cpp \
-    VarInt.cpp \
     BinaryUtils.cpp \
-    BaseGameState.cpp \
     TestGameState.cpp \
     MobRadarWidget.cpp
 

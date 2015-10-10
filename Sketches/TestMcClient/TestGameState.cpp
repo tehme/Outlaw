@@ -2,7 +2,6 @@
 #include <iostream>
 #include <QByteArray>
 #include <QString>
-#include "MessageBuffer.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -64,6 +63,10 @@ void TestGameState::onMessageReceived(QByteArray data)
             std::cout << "Got keep-alive!" << std::endl;
             emit messageSent(data);
         }
+        else
+        {
+            tryHandleEntityMessage(messageCode.getValue(), buffer);
+        }
     }
 }
 
@@ -108,6 +111,104 @@ void TestGameState::sendLoginStart()
 
     QByteArray bufferBytes = buffer.getAllBytes();
     emit messageSent(bufferBytes);
+}
+
+void TestGameState::tryHandleEntityMessage(int messageCode, MessageBuffer & buffer)
+{
+    if(m_serverState != ServerState::Play)
+    {
+        //TODO: warning
+        return;
+    }
+
+    static const int spawnMobCode = 0x0F;
+    static const int destroyEntitiesCode = 0x13;
+    static const int entityRelativeMoveCode = 0x15;
+    static const int entityLookAndRelativeMoveCode = 0x17;
+    static const int entityTeleportCode = 0x18;
+
+    static const QList<int> supportedMessages =
+    {
+        spawnMobCode,
+        destroyEntitiesCode,
+        entityRelativeMoveCode,
+        entityLookAndRelativeMoveCode,
+        entityTeleportCode
+    };
+
+    if(!supportedMessages.contains(messageCode))
+    {
+        return;
+    }
+
+    switch(messageCode)
+    {
+    case spawnMobCode:
+        {
+            VarInt entityId;
+            quint8 mobType;
+            int xFixed, yFixed, zFixed;
+
+            buffer >> entityId >> mobType >> xFixed >> yFixed >> zFixed;
+
+            int x = double(xFixed) / 32;
+            int y = double(yFixed) / 32;
+            int z = double(zFixed) / 32;
+
+            emit entitySpawned(entityId.getValue(), x, y, z);
+            break;
+        }
+
+    case destroyEntitiesCode:
+        {
+            VarInt count, id;
+            buffer >> count;
+
+            for(int i = 0; i < count.getValue(); ++i)
+            {
+                buffer >> id;
+                emit entityDestroyed(id.getValue());
+            }
+
+            break;
+        }
+
+    case entityRelativeMoveCode:
+    case entityLookAndRelativeMoveCode:
+        {
+            VarInt entityId;
+            qint8 deltaXFixed, deltaYFixed, deltaZFixed;
+
+            buffer >> entityId >> deltaXFixed >> deltaYFixed >> deltaZFixed;
+
+            int deltaX = double(deltaXFixed) / 32;
+            int deltaY = double(deltaYFixed) / 32;
+            int deltaZ = double(deltaZFixed) / 32;
+
+            if(deltaX != 0 || deltaY != 0 || deltaZ != 0)
+            {
+                emit entityPositionChanged(entityId.getValue(), deltaX, deltaY, deltaZ, true);
+            }
+
+            break;
+        }
+
+    case entityTeleportCode:
+        {
+            VarInt entityId;
+            int xFixed, yFixed, zFixed;
+
+            buffer >> entityId >> xFixed >> yFixed >> zFixed;
+
+            int x = double(xFixed) / 32;
+            int y = double(yFixed) / 32;
+            int z = double(zFixed) / 32;
+
+            emit entityPositionChanged(entityId.getValue(), x, y, z, false);
+
+            break;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------//

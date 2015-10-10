@@ -2,6 +2,7 @@
 #define TESTGAMESTATE_HPP
 
 #include "BaseGameState.hpp"
+#include "MessageBuffer.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -17,6 +18,12 @@ public:
     void setPort(quint16 port);
     void setUserName(const QString & userName);
 
+signals:
+    void entitySpawned(int entityId, int x, int y, int z);
+    void entityDestroyed(int entityId);
+    void entityPositionChanged(int entityId, int x, int y, int z, bool isRelative);
+
+
 public slots:
     virtual void onMessageReceived(QByteArray data) override;
 
@@ -25,6 +32,8 @@ public slots:
 private:
     void sendLoginHandshake();
     void sendLoginStart();
+
+    void tryHandleEntityMessage(int messageCode, MessageBuffer & buffer);
 
 private:
     ServerState m_serverState; // Move to base class?

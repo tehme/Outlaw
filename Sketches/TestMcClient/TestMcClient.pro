@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network
-QT       -= gui
+QT       += core gui widgets network
 
 TARGET = TestMcClient
 CONFIG   += console c++11
@@ -20,7 +19,8 @@ HEADERS += \
     VarInt.hpp \
     BinaryUtils.hpp \
     BaseGameState.hpp \
-    TestGameState.hpp
+    TestGameState.hpp \
+    MobRadarWidget.hpp
 
 SOURCES += \
     TestMcClient_Main.cpp \
@@ -29,4 +29,8 @@ SOURCES += \
     VarInt.cpp \
     BinaryUtils.cpp \
     BaseGameState.cpp \
-    TestGameState.cpp
+    TestGameState.cpp \
+    MobRadarWidget.cpp
+
+FORMS += \
+    MobRadarWidget.ui

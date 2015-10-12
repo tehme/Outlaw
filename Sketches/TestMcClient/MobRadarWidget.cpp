@@ -2,7 +2,100 @@
 #include "ui_MobRadarWidget.h"
 #include <QPainter>
 #include <QDebug>
+#include <QMouseEvent>
 
+//----------------------------------------------------------------------------//
+
+const QMap<MobType, QColor> MobInfo::m_mobColors =
+{
+    {MobType::Zombie,   QColor(0x62, 0x84, 0x50)},
+    {MobType::Creeper,  QColor(0x5d, 0xcd, 0x4d)},
+    {MobType::Skeleton, QColor(0x99, 0x99, 0x99)},
+};
+
+
+MobInfo::MobInfo(int id, MobType mobType, int x, int y, QGraphicsScene * scene) :
+    m_id(id),
+    m_circle(new QGraphicsEllipseItem(0, 0, 5, 5)),
+    m_label(new QGraphicsTextItem(m_circle)),
+    m_scene(scene)
+{
+    m_label->setPos(5, -5);
+
+    if(m_mobColors.contains(mobType))
+    {
+        m_circle->setBrush(QBrush(m_mobColors[mobType]));
+    }
+
+    // Do not scale when view is zoomed
+    m_circle->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
+
+    m_scene->addItem(m_circle);
+
+    setPos(QPointF(x, y));
+}
+
+MobInfo::~MobInfo()
+{
+    qDebug() << "Item" << m_id << "dtor!";
+    m_scene->removeItem(m_circle);
+    delete m_circle;
+    m_circle = nullptr;
+    m_label = nullptr;
+    m_scene = nullptr;
+}
+
+QPointF MobInfo::getPos() const
+{
+    if(m_circle)
+    {
+        return m_circle->pos();
+    }
+
+    return QPointF();
+}
+
+void MobInfo::setPos(QPointF pos)
+{
+    if(m_circle)
+    {
+        m_circle->setPos(pos);
+        updateLabel();
+    }
+}
+
+void MobInfo::updateLabel()
+{
+    if(m_label)
+    {
+        QString labelText = QString("ID %1; x: %2; y: ?; z: %3").arg(m_id).arg(m_circle->x()).arg(m_circle->y());
+        m_label->setPlainText(labelText);
+    }
+}
+
+//----------------------------------------------------------------------------//
+
+MouseEventCatcher::MouseEventCatcher(QGraphicsView * view, QObject * parent) :
+    QObject(parent),
+    m_view(view)
+{
+    m_view->installEventFilter(this);
+}
+
+bool MouseEventCatcher::eventFilter(QObject * target, QEvent * event)
+{
+    if(target == m_view && event->type() == QEvent::MouseButtonPress)
+    {
+        QMouseEvent * mouseEvent = dynamic_cast<QMouseEvent *>(event);
+        m_view->centerOn(m_view->mapToScene(mouseEvent->x(), mouseEvent->y()));
+
+        return true;
+    }
+
+    return false;
+}
+
+//----------------------------------------------------------------------------//
 
 MobRadarWidget::MobRadarWidget(int centerX, int centerZ, int pixelsPerCube, QWidget *parent) :
     QWidget(parent),
@@ -15,30 +108,32 @@ MobRadarWidget::MobRadarWidget(int centerX, int centerZ, int pixelsPerCube, QWid
     ui->setupUi(this);
 
     ui->graphicsView->setScene(m_graphicsScene);
-    ui->graphicsView->scale(1, 1);
+    MouseEventCatcher * mouseEventCatcher = new MouseEventCatcher(ui->graphicsView, ui->graphicsView);
+//    ui->graphicsView->scale(2, 2);
+
+    m_timer.setInterval(1000);
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(onTimer()));
+    m_timer.start();
 }
 
 MobRadarWidget::~MobRadarWidget()
 {
+    for(MobInfo * mob : m_mobs)
+    {
+        delete mob;
+    }
+    m_mobs.clear();
+
     delete ui;
 }
 
-void MobRadarWidget::onEntitySpawned(int entityId, int x, int y, int z)
+void MobRadarWidget::onEntitySpawned(int entityId, int mobType, int x, int y, int z)
 {
-    if(m_mobs.size() >= 5)
-        return;
+//    if(m_mobs.size() >= 5)
+//        return;
 
-    m_mobs.insert(entityId, MobPosition(entityId, x, y, z));
-
-    MobPosition & mob = m_mobs[entityId];
-
-    mob.m_position = m_graphicsScene->addEllipse(x, z, 5, 5);
-    mob.m_label = m_graphicsScene->addText("BLANK LABEL");
-    mob.updateLabel(); // todo: create if none
-
-    // Scale back units
-    m_mobs[entityId].m_position->setScale(1);
-    m_mobs[entityId].m_label->setScale(1);
+    MobType trueMobType = static_cast<MobType>(mobType);
+    m_mobs.insert(entityId, new MobInfo(entityId, trueMobType, x, z, m_graphicsScene));
 
     qDebug() << "Entity spawned! Id:" << entityId << "; coodrinates:"<< x << y << z;
 }
@@ -51,49 +146,31 @@ void MobRadarWidget::onEntityPositionChanged(int entityId, int x, int y, int z, 
         return;
     }
 
-    MobPosition & currentPosition = m_mobs[entityId];
+    MobInfo * currentMob = m_mobs[entityId];
+    QPointF pos = currentMob->getPos();
 
     if(!isRelative)
     {
-        currentPosition.m_x = x;
-        currentPosition.m_y = y;
-        currentPosition.m_z = z;
-        qDebug() << "Changing position of entity" << entityId << "absolutely to" << x << y << z;
+        pos.setX(x);
+        pos.setY(z);
+//        qDebug() << "Changing position of entity" << entityId << "absolutely to" << x << y << z;
     }
     else
     {
-        currentPosition.m_x += x;
-        currentPosition.m_y += y;
-        currentPosition.m_z += z;
+        pos.rx() += x;
+        pos.ry() += z;
 
-        qDebug() << "Changing position of entity" << entityId << "relatively to" << x << y << z;
+//        qDebug() << "Changing position of entity" << entityId << "relatively to" << x << y << z;
     }
 
-    if(currentPosition.m_position)
-    {
-        currentPosition.m_position->setPos(currentPosition.m_x, currentPosition.m_z);
-        qDebug() << "Setting visual position for entity" << entityId << "to" << currentPosition.m_x << currentPosition.m_z;
-        currentPosition.updateLabel();
-        qDebug() << "Entity position changed! Id:" << entityId;
-    }
-    else
-    {
-        qDebug() << "Trying to set pos for entity without graphics item!";
-    }
-
-
+    currentMob->setPos(pos);
 }
 
 void MobRadarWidget::onEntityDestroyed(int entityId)
 {
     if(m_mobs.contains(entityId))
     {
-        m_graphicsScene->removeItem(m_mobs[entityId].m_position);
-        delete m_mobs[entityId].m_position;
-
-        m_graphicsScene->removeItem(m_mobs[entityId].m_label);
-        delete m_mobs[entityId].m_label;
-
+        delete m_mobs[entityId];
         m_mobs.remove(entityId);
         qDebug() << "Entity destroyed! Id:" << entityId;
     }
@@ -101,4 +178,18 @@ void MobRadarWidget::onEntityDestroyed(int entityId)
     {
         qDebug() << "Trying to destroy entity" << entityId << "that is not in the list.";
     }
+}
+
+void MobRadarWidget::onTimer()
+{
+}
+
+void MobRadarWidget::on_btnZoomIn_clicked()
+{
+    ui->graphicsView->scale(1.2, 1.2);
+}
+
+void MobRadarWidget::on_btnZoomOut_clicked()
+{
+    ui->graphicsView->scale(1 / 1.2, 1 / 1.2);
 }

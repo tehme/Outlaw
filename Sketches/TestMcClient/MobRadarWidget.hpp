@@ -3,8 +3,10 @@
 
 #include <QWidget>
 #include <QMap>
+#include <QTimer>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QColor>
 
 #include <QDebug>
 
@@ -12,40 +14,88 @@ namespace Ui {
 class MobRadarWidget;
 }
 
-struct MobPosition
+enum class MobType
 {
-    MobPosition(int entityId = 0, int x = 0, int y = 0, int z = 0) :
-        m_entityId(entityId),
-        m_x(x),
-        m_y(y),
-        m_z(z),
-        m_position(nullptr),
-        m_label(nullptr)
-    {
-    }
+    Creeper      = 50,
+    Skeleton     = 51,
+    Spider       = 52,
+    GiantZombie  = 53,
+    Zombie       = 54,
+    Slime        = 55,
+    Ghast        = 56,
+    ZombiePigman = 57,
+    Enderman     = 58,
+    CaveSpider   = 59,
+    Silverfish   = 60,
+    Blaze        = 61,
+    MagmaCube    = 62,
+    EnderDragon  = 63,
+    Wither       = 64,
+    Bat          = 65,
+    Witch        = 66,
+    Endermite    = 67,
+    Guardian     = 68,
+    Shulker      = 69,
+    Pig          = 90,
+    Sheep        = 91,
+    Cow          = 92,
+    Chicken      = 93,
+    Squid        = 94,
+    Wolf         = 95,
+    Mooshroom    = 96,
+    Snowman      = 97,
+    Ocelot       = 98,
+    IronGolem    = 99,
+    Horse        = 100,
+    Rabbit       = 101,
+    Villager     = 120,
 
-    void updateLabel()
-    {
-        if(m_label)
-        {
-            const QString mobLabel = QString("Id %1: %2 %3 %4").arg(m_entityId).arg(m_x).arg(m_y).arg(m_z);
-            m_label->setPlainText(mobLabel);
-            m_label->setPos(m_x + 5, m_z - 10);
-            qDebug() << "Setting label position for entity" << m_entityId << "to" << (m_x + 5) << (m_z - 10);
-        }
-        else
-        {
-//            qDebug() << "Entity" << m_entityId << "has no label!";
-        }
-    }
-
-    int                    m_entityId;
-    int                    m_x;
-    int                    m_y;
-    int                    m_z;
-    QGraphicsEllipseItem * m_position;
-    QGraphicsTextItem    * m_label;
+    Undefined    = -1
 };
+
+//----------------------------------------------------------------------------//
+
+class MobInfo
+{
+public:
+    MobInfo(int id, MobType mobType, int x, int y, QGraphicsScene * scene);
+    ~MobInfo();
+
+    MobInfo(const MobInfo & other) = delete;
+
+    QPointF getPos() const;
+    void setPos(QPointF pos);
+
+private:
+    void updateLabel();
+
+private:
+    static const QMap<MobType, QColor> m_mobColors;
+
+    int                    m_id;
+    QGraphicsEllipseItem * m_circle;
+    QGraphicsTextItem    * m_label;
+
+    QGraphicsScene       * m_scene;
+};
+
+//----------------------------------------------------------------------------//
+
+class MouseEventCatcher : public QObject
+{
+    Q_OBJECT
+
+public:
+    MouseEventCatcher(QGraphicsView * view, QObject * parent = nullptr);
+
+private:
+    virtual bool eventFilter(QObject *target, QEvent *event) override;
+
+private:
+    QGraphicsView * m_view;
+};
+
+//----------------------------------------------------------------------------//
 
 class MobRadarWidget : public QWidget
 {
@@ -56,10 +106,15 @@ public:
     ~MobRadarWidget();
 
 public slots:
-    void onEntitySpawned(int entityId, int x, int y, int z);
+    void onEntitySpawned(int entityId, int mobType, int x, int y, int z);
     void onEntityDestroyed(int entityId);
     void onEntityPositionChanged(int entityId, int x, int y, int z, bool isRelative);
 
+private slots:
+    void onTimer();
+
+    void on_btnZoomIn_clicked();
+    void on_btnZoomOut_clicked();
 
 private:
     Ui::MobRadarWidget     * ui;
@@ -71,7 +126,9 @@ private:
     // Scale
     int m_pixelsPerCube;
 
-    QMap<int, MobPosition>  m_mobs;
+    QMap<int, MobInfo *>  m_mobs;
+
+    QTimer m_timer;
 };
 
 #endif // MOBRADARWIDGET_HPP

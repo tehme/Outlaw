@@ -1,0 +1,6 @@
+Outlaw TODO list.
+
+New features:
+* chat handling sketch;
+* more functional AbstractGameState/BaseGameState: encapsulated state handlers etc.
+

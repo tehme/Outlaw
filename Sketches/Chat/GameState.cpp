@@ -9,16 +9,6 @@ namespace nc = NetworkClient;
 
 //----------------------------------------------------------------------------//
 
-AbstractMessageHandler::AbstractMessageHandler(QObject * parent) :
-    QObject(parent)
-{
-}
-
-AbstractMessageHandler::~AbstractMessageHandler()
-{
-}
-
-
 KeepAliveHandler::KeepAliveHandler(QObject * parent) :
     AbstractMessageHandler(parent)
 {
@@ -130,26 +120,24 @@ void GameState::run()
 
 void GameState::onInboundMessage(QByteArray data)
 {
-    for( AbstractMessageHandler * handler : m_messageHandlers)
+    for(nc::AbstractMessageHandler * handler : m_messageHandlers)
     {
         handler->onInboundMessage(static_cast<int>(getServerState()), data);
     }
 }
 
-QPointer<AbstractMessageHandler> GameState::addMessageHandler(AbstractMessageHandler * handler)
+void GameState::addMessageHandler(nc::AbstractMessageHandler * handler)
 {
     if(!handler)
     {
-        return nullptr;
+        return;
     }
 
     m_messageHandlers.append(handler);
     connect(handler, SIGNAL(outboundMessage(QByteArray)), this, SIGNAL(outboundMessage(QByteArray)));
-
-    return handler;
 }
 
-void GameState::removeMessageHandler(AbstractMessageHandler * handler)
+void GameState::removeMessageHandler(nc::AbstractMessageHandler * handler)
 {
     if(!handler || !m_messageHandlers.contains(handler))
     {

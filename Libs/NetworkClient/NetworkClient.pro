@@ -18,7 +18,8 @@ HEADERS += \
     TcpClient.hpp \
     AbstractGameState.hpp \
     BaseGameState.hpp \
-    PacketsV47.hpp
+    PacketsV47.hpp \
+    AbstractMessageHandler.hpp
 
 SOURCES += \
     VarInt.cpp \
@@ -26,4 +27,5 @@ SOURCES += \
     TcpClient.cpp \
     AbstractGameState.cpp \
     BaseGameState.cpp \
-    PacketsV47.cpp
+    PacketsV47.cpp \
+    AbstractMessageHandler.cpp

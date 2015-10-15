@@ -8,6 +8,7 @@
 #include <QString>
 // }
 #include <NetworkClient/BaseGameState.hpp>
+#include <NetworkClient/AbstractMessageHandler.hpp>
 
 //----------------------------------------------------------------------------//
 
@@ -16,29 +17,16 @@ namespace NetworkClient
     class TcpClient;
 }
 
+namespace nc = NetworkClient;
+
 //----------------------------------------------------------------------------//
 
 // This part will be moved to NetworkClient
 // {
-class AbstractMessageHandler : public QObject
-{
-    Q_OBJECT
-
-public:
-    AbstractMessageHandler(QObject * parent = nullptr);
-    virtual ~AbstractMessageHandler() override;
-
-signals:
-    void outboundMessage(QByteArray data);
-
-public slots:
-    virtual void onInboundMessage(int serverState, QByteArray data) = 0;
-};
-
 
 // This handler is only responsive for sending keep-alive messages in Play state.
 // It does not log in by itself.
-class KeepAliveHandler : public AbstractMessageHandler
+class KeepAliveHandler : public nc::AbstractMessageHandler
 {
     Q_OBJECT
 
@@ -51,7 +39,7 @@ public slots:
 };
 
 
-class LoginHandler : public AbstractMessageHandler
+class LoginHandler : public nc::AbstractMessageHandler
 {
     Q_OBJECT
 
@@ -91,11 +79,11 @@ public slots:
 // This part will be moved to BaseGameState
 // {
 public:
-    QPointer<AbstractMessageHandler> addMessageHandler(AbstractMessageHandler * handler);
-    void removeMessageHandler(AbstractMessageHandler * handler);
+    void addMessageHandler(nc::AbstractMessageHandler * handler);
+    void removeMessageHandler(nc::AbstractMessageHandler * handler);
 
 private:
-    QVector<AbstractMessageHandler *> m_messageHandlers;
+    QVector<nc::AbstractMessageHandler *> m_messageHandlers;
 // }
 
 private slots:

@@ -1,6 +1,20 @@
 Outlaw TODO list.
 
 New features:
-* chat handling sketch;
-* more functional AbstractGameState/BaseGameState: encapsulated state handlers etc.
+
+* chat handling sketch:
+  1. [done] logging in and staying connected;
+  2. handling chat messages;
+  3. parsing JSON;
+  4. displaying received text;
+  5. forming proper chat messages and sending them;
+
+* more functional AbstractGameState/BaseGameState:
+  1. separate AbstractGameState from BaseGameState:
+  1.1. current BaseGameState should become AbstractGameState,
+  1.2. new BaseGameState should get the features listed below;
+  2. [done in sketch] support of encapsulated message handlers;
+  3. [done in sketch] compression message handling and signal to TcpClient;
+
+* facade class for NetworkClient library.
 

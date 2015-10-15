@@ -94,6 +94,7 @@ GameState::GameState(
     const QString            & userName,
     NetworkClient::TcpClient & tcpClient) :
 
+    NetworkClient::BaseGameState(nullptr),
     m_host(host),
     m_port(port),
     m_userName(userName)
@@ -131,7 +132,7 @@ void GameState::onInboundMessage(QByteArray data)
 {
     for( AbstractMessageHandler * handler : m_messageHandlers)
     {
-        handler->onInboundMessage(static_cast<int>(m_serverState), data);
+        handler->onInboundMessage(static_cast<int>(getServerState()), data);
     }
 }
 
@@ -159,19 +160,6 @@ void GameState::removeMessageHandler(AbstractMessageHandler * handler)
     delete handler;
 }
 
-NetworkClient::ServerState GameState::getServerState() const
-{
-    return m_serverState;
-}
-
-void GameState::setServerState(NetworkClient::ServerState newState)
-{
-    if(m_serverState != newState)
-    {
-        m_serverState = newState;
-        emit serverStateChanged(static_cast<int>(newState));
-    }
-}
 
 //----------------------------------------------------------------------------//
 

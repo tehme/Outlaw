@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QString>
 // }
-#include <NetworkClient/AbstractGameState.hpp>
+#include <NetworkClient/BaseGameState.hpp>
 
 //----------------------------------------------------------------------------//
 
@@ -69,7 +69,7 @@ public slots:
 
 //----------------------------------------------------------------------------//
 
-class GameState : public NetworkClient::AbstractGameState
+class GameState : public NetworkClient::BaseGameState
 {
     Q_OBJECT
 
@@ -94,15 +94,7 @@ public:
     QPointer<AbstractMessageHandler> addMessageHandler(AbstractMessageHandler * handler);
     void removeMessageHandler(AbstractMessageHandler * handler);
 
-signals:
-    void serverStateChanged(int newState);
-
-protected:
-    NetworkClient::ServerState getServerState() const;
-    void setServerState(NetworkClient::ServerState newState);
-
 private:
-    NetworkClient::ServerState        m_serverState = NetworkClient::ServerState::Undefined;
     QVector<AbstractMessageHandler *> m_messageHandlers;
 // }
 

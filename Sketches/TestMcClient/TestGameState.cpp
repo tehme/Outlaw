@@ -17,7 +17,7 @@ namespace sb47 = NetworkClient::PacketsV47::Serverbound;
 //----------------------------------------------------------------------------//
 
 TestGameState::TestGameState(QObject * parent) :
-    BaseGameState(parent),
+    AbstractGameState(parent),
     m_serverState(ServerState::Undefined),
     m_host(),
     m_port(0),

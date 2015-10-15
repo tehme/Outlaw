@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QString>
 // }
-#include <NetworkClient/BaseGameState.hpp>
+#include <NetworkClient/AbstractGameState.hpp>
 
 //----------------------------------------------------------------------------//
 
@@ -69,7 +69,7 @@ public slots:
 
 //----------------------------------------------------------------------------//
 
-class GameState : public NetworkClient::BaseGameState
+class GameState : public NetworkClient::AbstractGameState
 {
     Q_OBJECT
 

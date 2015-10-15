@@ -1,4 +1,4 @@
-#include "BaseGameState.hpp"
+#include "AbstractGameState.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -6,12 +6,12 @@ namespace NetworkClient {
 
 //----------------------------------------------------------------------------//
 
-BaseGameState::BaseGameState(QObject * parent) :
+AbstractGameState::AbstractGameState(QObject * parent) :
     QObject(parent)
 {
 }
 
-BaseGameState::~BaseGameState()
+AbstractGameState::~AbstractGameState()
 {
 }
 

@@ -1,5 +1,5 @@
-#ifndef BASEGAMESTATE_HPP
-#define BASEGAMESTATE_HPP
+#ifndef ABSTRACTGAMESTATE_HPP
+#define ABSTRACTGAMESTATE_HPP
 
 #include <QObject>
 #include <QByteArray>
@@ -22,13 +22,13 @@ enum class ServerState
 
 //----------------------------------------------------------------------------//
 
-class NETWORK_CLIENT_EXPORTED BaseGameState : public QObject
+class NETWORK_CLIENT_EXPORTED AbstractGameState : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit BaseGameState(QObject * parent = nullptr);
-    virtual ~BaseGameState() override;
+    explicit AbstractGameState(QObject * parent = nullptr);
+    virtual ~AbstractGameState() override;
 
 signals:
     // Data should be without length bytes.
@@ -44,4 +44,4 @@ public slots:
 
 //----------------------------------------------------------------------------//
 
-#endif // BASEGAMESTATE_HPP
+#endif // ABSTRACTGAMESTATE_HPP

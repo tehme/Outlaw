@@ -2,12 +2,12 @@
 #define TESTGAMESTATE_HPP
 
 #include <QTimer>
-#include <NetworkClient/BaseGameState.hpp>
+#include <NetworkClient/AbstractGameState.hpp>
 #include <NetworkClient/MessageBuffer.hpp>
 
 //----------------------------------------------------------------------------//
 
-class TestGameState : public NetworkClient::BaseGameState
+class TestGameState : public NetworkClient::AbstractGameState
 {
     Q_OBJECT
 

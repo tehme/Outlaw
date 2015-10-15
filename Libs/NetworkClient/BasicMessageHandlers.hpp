@@ -16,7 +16,7 @@ class NETWORK_CLIENT_EXPORTED KeepAliveHandler : public AbstractMessageHandler
     Q_OBJECT
 
 public:
-    KeepAliveHandler(QObject * parent = nullptr);
+    explicit KeepAliveHandler(QObject * parent = nullptr);
     virtual ~KeepAliveHandler() override;
 
 public slots:
@@ -30,7 +30,8 @@ class NETWORK_CLIENT_EXPORTED LoginHandler : public AbstractMessageHandler
     Q_OBJECT
 
 public:
-    LoginHandler(QObject * parent = nullptr);
+    explicit LoginHandler(QObject * parent = nullptr);
+    virtual ~LoginHandler() override;
 
 signals:
     void compressionThresholdChanged(int threshold);

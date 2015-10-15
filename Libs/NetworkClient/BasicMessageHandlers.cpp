@@ -48,6 +48,10 @@ LoginHandler::LoginHandler(QObject * parent) :
 {
 }
 
+LoginHandler::~LoginHandler()
+{
+}
+
 void LoginHandler::onInboundMessage(int serverState, QByteArray data)
 {
     ServerState trueState = static_cast<ServerState>(serverState);

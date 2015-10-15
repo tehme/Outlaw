@@ -29,9 +29,15 @@ public:
 signals:
     void serverStateChanged(int newState);
 
+public slots:
+    virtual void onInboundMessage(QByteArray data) override;
+
 protected:
     ServerState getServerState() const;
     void setServerState(ServerState newState);
+
+    virtual void preMessageHandle();
+    virtual void postMessageHandle();
 
 private:
     ServerState                       m_serverState = ServerState::Undefined;

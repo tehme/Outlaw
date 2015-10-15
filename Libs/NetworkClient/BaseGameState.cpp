@@ -42,10 +42,16 @@ void BaseGameState::removeMessageHandler(AbstractMessageHandler * handler)
 
 void BaseGameState::onInboundMessage(QByteArray data)
 {
+    preMessageHandle();
+
+    // TODO: explicitly require that server state should not change during handling.
+    // TODO: think about better scheduling mechanism than pre/post handling functions.
     for(AbstractMessageHandler * handler : m_messageHandlers)
     {
         handler->onInboundMessage(static_cast<int>(getServerState()), data);
     }
+
+    postMessageHandle();
 }
 
 ServerState BaseGameState::getServerState() const
@@ -60,6 +66,14 @@ void BaseGameState::setServerState(ServerState newState)
         m_serverState = newState;
         emit serverStateChanged(static_cast<int>(newState));
     }
+}
+
+void BaseGameState::preMessageHandle()
+{
+}
+
+void BaseGameState::postMessageHandle()
+{
 }
 
 //----------------------------------------------------------------------------//

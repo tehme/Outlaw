@@ -1,12 +1,7 @@
 #ifndef GAMESTATE_HPP
 #define GAMESTATE_HPP
 
-// This part will be moved to BaseGameState
-// {
-#include <QPointer>
-#include <QVector>
-#include <QString>
-// }
+#include <NetworkClient/AbstractMessageHandler.hpp>
 #include <NetworkClient/BaseGameState.hpp>
 
 //----------------------------------------------------------------------------//
@@ -18,6 +13,20 @@ namespace NetworkClient
 }
 
 namespace nc = NetworkClient;
+
+//----------------------------------------------------------------------------//
+
+class ChatHandler : public nc::AbstractMessageHandler
+{
+    Q_OBJECT
+
+public:
+    explicit ChatHandler(QObject * parent = nullptr);
+    virtual ~ChatHandler() override;
+
+public slots:
+    virtual void onInboundMessage(int serverState, QByteArray data) override;
+};
 
 //----------------------------------------------------------------------------//
 
@@ -35,11 +44,6 @@ public:
 
     void run();
 
-signals:
-
-public slots:
-    virtual void onInboundMessage(QByteArray data) override;
-
 private slots:
     void onLoginFinished();
 
@@ -47,10 +51,14 @@ private:
     void sendLoginHandshake();
     void sendLoginStart();
 
+    virtual void postMessageHandle() override;
+
 private:
     QString m_host;
     quint16 m_port;
     QString m_userName;
+
+    bool    m_playStateScheduled = false;
 };
 
 //----------------------------------------------------------------------------//

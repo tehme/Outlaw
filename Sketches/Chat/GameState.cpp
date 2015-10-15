@@ -1,13 +1,52 @@
 #include "GameState.hpp"
+#include <QDebug>
 #include <NetworkClient/MessageBuffer.hpp>
 #include <NetworkClient/TcpClient.hpp>
 #include <NetworkClient/VarInt.hpp>
-#include <NetworkClient/AbstractMessageHandler.hpp>
 #include <NetworkClient/BasicMessageHandlers.hpp>
 
 //----------------------------------------------------------------------------//
 
 namespace nc = NetworkClient;
+
+//----------------------------------------------------------------------------//
+
+ChatHandler::ChatHandler(QObject * parent) :
+    nc::AbstractMessageHandler(parent)
+{
+}
+
+ChatHandler::~ChatHandler()
+{
+}
+
+void ChatHandler::onInboundMessage(int serverState, QByteArray data)
+{
+    nc::ServerState trueState = static_cast<nc::ServerState>(serverState);
+
+    if(trueState != nc::ServerState::Play)
+    {
+        return;
+    }
+
+    nc::MessageBuffer buffer(data);
+    nc::VarInt messageCode;
+
+    buffer >> messageCode;
+
+    if(messageCode.getValue() != 0x02) // chat message
+    {
+        return;
+    }
+
+    QString chatMessage;
+    buffer >> chatMessage;
+
+    qDebug() << "Chat message!";
+    qDebug() << chatMessage;
+    // TODO: send signal to chat widget.
+}
+
 
 //----------------------------------------------------------------------------//
 
@@ -29,6 +68,7 @@ GameState::GameState(
 
     addMessageHandler(loginHandler);
     addMessageHandler(new nc::KeepAliveHandler);
+    addMessageHandler(new ChatHandler);
 }
 
 GameState::~GameState()
@@ -55,7 +95,7 @@ void GameState::onLoginFinished()
 {
     if(getServerState() == nc::ServerState::Login)
     {
-        setServerState(nc::ServerState::Play);
+        m_playStateScheduled = true;
     }
     else
     {
@@ -99,6 +139,15 @@ void GameState::sendLoginStart()
 
     QByteArray bufferBytes = buffer.getAllBytes();
     emit outboundMessage(bufferBytes);
+}
+
+void GameState::postMessageHandle()
+{
+    if(m_playStateScheduled)
+    {
+        m_playStateScheduled = false;
+        setServerState(nc::ServerState::Play);
+    }
 }
 
 //----------------------------------------------------------------------------//

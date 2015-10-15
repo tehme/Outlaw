@@ -1,5 +1,5 @@
-#ifndef TCPCLIENT_H
-#define TCPCLIENT_H
+#ifndef TCPCLIENT_HPP
+#define TCPCLIENT_HPP
 
 #include <QObject>
 #include <QString>
@@ -54,4 +54,6 @@ private:
 
 //----------------------------------------------------------------------------//
 
-#endif // TCPCLIENT_H
+#endif // TCPCLIENT_HPP
+
+//----------------------------------------------------------------------------//

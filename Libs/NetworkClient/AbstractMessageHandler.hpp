@@ -2,6 +2,7 @@
 #define ABSTRACTMESSAGEHANDLER_HPP
 
 #include <QObject>
+#include <QByteArray>
 #include "NetworkClientGeneral.hpp"
 
 //----------------------------------------------------------------------------//

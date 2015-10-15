@@ -1,4 +1,5 @@
 #include "BaseGameState.hpp"
+#include "AbstractMessageHandler.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -13,6 +14,38 @@ BaseGameState::BaseGameState(QObject * parent) :
 
 BaseGameState::~BaseGameState()
 {
+    qDeleteAll(m_messageHandlers);
+    m_messageHandlers.clear();
+}
+
+void BaseGameState::addMessageHandler(AbstractMessageHandler * handler)
+{
+    if(!handler)
+    {
+        return;
+    }
+
+    m_messageHandlers.append(handler);
+    connect(handler, SIGNAL(outboundMessage(QByteArray)), this, SIGNAL(outboundMessage(QByteArray)));
+}
+
+void BaseGameState::removeMessageHandler(AbstractMessageHandler * handler)
+{
+    if(!handler || !m_messageHandlers.contains(handler))
+    {
+        return;
+    }
+
+    m_messageHandlers.removeOne(handler);
+    delete handler;
+}
+
+void BaseGameState::onInboundMessage(QByteArray data)
+{
+    for(AbstractMessageHandler * handler : m_messageHandlers)
+    {
+        handler->onInboundMessage(static_cast<int>(getServerState()), data);
+    }
 }
 
 ServerState BaseGameState::getServerState() const

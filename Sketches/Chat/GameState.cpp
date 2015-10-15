@@ -33,8 +33,6 @@ GameState::GameState(
 
 GameState::~GameState()
 {
-    qDeleteAll(m_messageHandlers);
-    m_messageHandlers.clear();
 }
 
 void GameState::run()
@@ -50,37 +48,6 @@ void GameState::run()
     sendLoginHandshake();
     sendLoginStart();
 }
-
-void GameState::onInboundMessage(QByteArray data)
-{
-    for(nc::AbstractMessageHandler * handler : m_messageHandlers)
-    {
-        handler->onInboundMessage(static_cast<int>(getServerState()), data);
-    }
-}
-
-void GameState::addMessageHandler(nc::AbstractMessageHandler * handler)
-{
-    if(!handler)
-    {
-        return;
-    }
-
-    m_messageHandlers.append(handler);
-    connect(handler, SIGNAL(outboundMessage(QByteArray)), this, SIGNAL(outboundMessage(QByteArray)));
-}
-
-void GameState::removeMessageHandler(nc::AbstractMessageHandler * handler)
-{
-    if(!handler || !m_messageHandlers.contains(handler))
-    {
-        return;
-    }
-
-    m_messageHandlers.removeOne(handler);
-    delete handler;
-}
-
 
 //----------------------------------------------------------------------------//
 

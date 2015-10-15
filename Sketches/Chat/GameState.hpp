@@ -40,16 +40,6 @@ signals:
 public slots:
     virtual void onInboundMessage(QByteArray data) override;
 
-// This part will be moved to BaseGameState
-// {
-public:
-    void addMessageHandler(nc::AbstractMessageHandler * handler);
-    void removeMessageHandler(nc::AbstractMessageHandler * handler);
-
-private:
-    QVector<nc::AbstractMessageHandler *> m_messageHandlers;
-// }
-
 private slots:
     void onLoginFinished();
 

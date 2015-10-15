@@ -19,7 +19,8 @@ HEADERS += \
     AbstractGameState.hpp \
     BaseGameState.hpp \
     PacketsV47.hpp \
-    AbstractMessageHandler.hpp
+    AbstractMessageHandler.hpp \
+    BasicMessageHandlers.hpp
 
 SOURCES += \
     VarInt.cpp \
@@ -28,4 +29,5 @@ SOURCES += \
     AbstractGameState.cpp \
     BaseGameState.cpp \
     PacketsV47.cpp \
-    AbstractMessageHandler.cpp
+    AbstractMessageHandler.cpp \
+    BasicMessageHandlers.cpp

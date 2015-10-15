@@ -2,80 +2,13 @@
 #include <NetworkClient/MessageBuffer.hpp>
 #include <NetworkClient/TcpClient.hpp>
 #include <NetworkClient/VarInt.hpp>
+#include <NetworkClient/AbstractMessageHandler.hpp>
+#include <NetworkClient/BasicMessageHandlers.hpp>
 
 //----------------------------------------------------------------------------//
 
 namespace nc = NetworkClient;
 
-//----------------------------------------------------------------------------//
-
-KeepAliveHandler::KeepAliveHandler(QObject * parent) :
-    AbstractMessageHandler(parent)
-{
-}
-
-KeepAliveHandler::~KeepAliveHandler()
-{
-}
-
-void KeepAliveHandler::onInboundMessage(int serverState, QByteArray data)
-{
-    nc::ServerState trueState = static_cast<nc::ServerState>(serverState);
-
-    if(trueState != nc::ServerState::Play)
-    {
-        return;
-    }
-
-    nc::MessageBuffer buffer(data);
-    nc::VarInt messageCode;
-
-    buffer >> messageCode;
-
-    if(messageCode.getValue() != 0x00) // keep-alive
-    {
-        return;
-    }
-
-    // Send data back, as clientbound and serverbound packets are equal.
-    emit outboundMessage(data);
-}
-
-//----------------------------------------------------------------------------//
-
-LoginHandler::LoginHandler(QObject * parent) :
-    AbstractMessageHandler(parent)
-{
-}
-
-void LoginHandler::onInboundMessage(int serverState, QByteArray data)
-{
-    nc::ServerState trueState = static_cast<nc::ServerState>(serverState);
-
-    if(trueState != nc::ServerState::Login)
-    {
-        return;
-    }
-
-    nc::MessageBuffer buffer(data);
-    nc::VarInt messageCode;
-
-    buffer >> messageCode;
-
-    if(messageCode.getValue() == 0x02) // login success
-    {
-        emit loginFinished();
-    }
-    else if(messageCode.getValue() == 0x03) // set compression
-    {
-        nc::VarInt threshold;
-        buffer >> threshold;
-
-        emit compressionThresholdChanged(threshold.getValue());
-    }
-}
-
-//----------------------------------------------------------------------------//
 //----------------------------------------------------------------------------//
 
 GameState::GameState(
@@ -89,13 +22,13 @@ GameState::GameState(
     m_port(port),
     m_userName(userName)
 {
-    LoginHandler * loginHandler = new LoginHandler;
+    nc::LoginHandler * loginHandler = new nc::LoginHandler;
     // Special signals are connected manually for now.
     connect(loginHandler, SIGNAL(compressionThresholdChanged(int)), &tcpClient, SLOT(setCompressionThreshold(int)));
     connect(loginHandler, SIGNAL(loginFinished()), this, SLOT(onLoginFinished()));
 
     addMessageHandler(loginHandler);
-    addMessageHandler(new KeepAliveHandler);
+    addMessageHandler(new nc::KeepAliveHandler);
 }
 
 GameState::~GameState()

@@ -48,10 +48,14 @@ void MainWindow::onChatMessageReceived(QString jsonMessage)
     {
         qDebug() << "Appending as text";
 
-        QTextCursor cursor = ui->textEdit->textCursor();
-        cursor.movePosition(QTextCursor::End);
-        cursor.insertHtml(assembleTextExtra(jsonObject));
-        cursor.insertHtml(jsonObject.value("text").toString());
+        QTextCursor oldCursor = ui->textEdit->textCursor();
+
+        ui->textEdit->moveCursor(QTextCursor::End);
+        ui->textEdit->insertHtml(assembleTextExtra(jsonObject));
+        ui->textEdit->insertHtml(jsonObject.value("text").toString());
+        ui->textEdit->insertHtml("<br>");
+
+        ui->textEdit->setTextCursor(oldCursor);
     }
     else if(jsonObject.contains("translate"))
     {
@@ -72,8 +76,6 @@ void MainWindow::onChatMessageReceived(QString jsonMessage)
         qDebug() << "Appending as unknown";
         ui->textEdit->append("Unknown: " + jsonMessage);
     }
-
-    ui->textEdit->insertHtml("<br>");
 }
 
 void MainWindow::on_pushButton_clicked()

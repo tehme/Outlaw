@@ -4,10 +4,10 @@ New features:
 
 * chat handling sketch:
   1. [done] logging in and staying connected;
-  2. [partially done] handling chat messages;
-  3. parsing JSON;
-  4. displaying received text;
-  5. forming proper chat messages and sending them;
+  2. [done] handling chat messages;
+  3. [partially done] parsing JSON;
+  4. [partially done] displaying received text;
+  5. [done] forming proper chat messages and sending them;
 
 * more functional AbstractGameState/BaseGameState:
   1. [done] separate AbstractGameState from BaseGameState:

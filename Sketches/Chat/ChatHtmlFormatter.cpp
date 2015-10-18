@@ -65,6 +65,7 @@ QString ChatHtmlFormatter::assembleTextExtra(const QJsonObject & textObject)
 {
     QJsonArray extraArray = textObject.value("extra").toArray();
     QString result;
+
     for(QJsonValue extraItem : extraArray)
     {
         QString itemText;
@@ -80,6 +81,12 @@ QString ChatHtmlFormatter::assembleTextExtra(const QJsonObject & textObject)
             itemText=QString("<font color=\"%1\">%2</font>")
                 .arg(htmlColor)
                 .arg(extraItemObj.value("text").toString());
+
+            if(extraItemObj.contains("bold") && extraItemObj.value("bold").toBool() == true)
+            {
+                itemText.prepend("<b>");
+                itemText.append("</b>");
+            }
         }
         else
         {

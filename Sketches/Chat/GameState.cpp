@@ -44,7 +44,8 @@ void ChatHandler::onInboundMessage(int serverState, QByteArray data)
 
     qDebug() << "Chat message!";
     qDebug() << chatMessage;
-    // TODO: send signal to chat widget.
+
+    emit chatMessageReceived(chatMessage);
 }
 
 
@@ -65,10 +66,13 @@ GameState::GameState(
     // Special signals are connected manually for now.
     connect(loginHandler, SIGNAL(compressionThresholdChanged(int)), &tcpClient, SLOT(setCompressionThreshold(int)));
     connect(loginHandler, SIGNAL(loginFinished()), this, SLOT(onLoginFinished()));
-
     addMessageHandler(loginHandler);
+
     addMessageHandler(new nc::KeepAliveHandler);
-    addMessageHandler(new ChatHandler);
+
+    ChatHandler * chatHandler = new ChatHandler;
+    connect(chatHandler, SIGNAL(chatMessageReceived(QString)), this, SIGNAL(chatMessageReceived(QString)));
+    addMessageHandler(chatHandler);
 }
 
 GameState::~GameState()
@@ -87,6 +91,19 @@ void GameState::run()
 
     sendLoginHandshake();
     sendLoginStart();
+}
+
+void GameState::onChatMessageSent(QString chatMessage)
+{
+    if(getServerState() != nc::ServerState::Play)
+    {
+        return;
+    }
+
+    nc::MessageBuffer buffer;
+    buffer << nc::VarInt(0x01) << chatMessage;
+
+    emit outboundMessage(buffer.getAllBytes());
 }
 
 //----------------------------------------------------------------------------//

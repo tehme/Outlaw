@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 
     QObject::connect(&tcpClient, SIGNAL(messageRead(QByteArray)), &gameState, SLOT(onInboundMessage(QByteArray)));
     QObject::connect(&gameState, SIGNAL(outboundMessage(QByteArray)), &tcpClient, SLOT(writeMessage(QByteArray)));
+    QObject::connect(&gameState, SIGNAL(chatMessageReceived(QString)), &w, SLOT(onChatMessageReceived(QString)));
+    QObject::connect(&w, SIGNAL(chatMessageSent(QString)), &gameState, SLOT(onChatMessageSent(QString)));
 
     tcpClient.connectToHost(host, port);
     gameState.run();

@@ -24,6 +24,9 @@ public:
     explicit ChatHandler(QObject * parent = nullptr);
     virtual ~ChatHandler() override;
 
+signals:
+    void chatMessageReceived(QString jsonMessage);
+
 public slots:
     virtual void onInboundMessage(int serverState, QByteArray data) override;
 };
@@ -43,6 +46,12 @@ public:
     virtual ~GameState() override;
 
     void run();
+
+signals:
+    void chatMessageReceived(QString jsonMessage);
+
+public slots:
+    void onChatMessageSent(QString chatMessage);
 
 private slots:
     void onLoginFinished();

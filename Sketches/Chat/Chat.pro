@@ -19,9 +19,11 @@ LIBS += -L../../$${BUILTDIR}/Libs -lNetworkClient
 
 SOURCES += main.cpp\
         MainWindow.cpp \
-    GameState.cpp
+    GameState.cpp \
+    ChatHtmlFormatter.cpp
 
 HEADERS  += MainWindow.hpp \
-    GameState.hpp
+    GameState.hpp \
+    ChatHtmlFormatter.hpp
 
 FORMS    += MainWindow.ui

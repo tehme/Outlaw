@@ -22,17 +22,19 @@ public:
     virtual ~TcpClient();
 
     void connectToHost(const QString & host, const quint16 port);
+    void disconnectFromHost();
 
 signals:
     void messageRead(QByteArray data);
+    void connected();
+    void disconnected();
+    void socketError(QAbstractSocket::SocketError socketError);
 
 public slots:
     void writeMessage(QByteArray data);
     void setCompressionThreshold(int threshold);
 
 private slots:
-    void onSocketConnected();
-    void onSocketError(QAbstractSocket::SocketError socketError);
     void onSocketReadyRead();
 
 private:

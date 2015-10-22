@@ -17,8 +17,10 @@ TcpClient::TcpClient(QObject *parent) :
     m_port(0),
     m_compressionThreshold(-1)
 {
-    connect(&m_socket, SIGNAL(connected()), this, SLOT(onSocketConnected()));
-    connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+    connect(&m_socket, SIGNAL(connected()), this, SIGNAL(connected()));
+    connect(&m_socket, SIGNAL(disconnected()), this, SIGNAL(disconnected()));
+    connect(&m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SIGNAL(socketError(QAbstractSocket::SocketError)));
+
     connect(&m_socket, SIGNAL(readyRead()), this, SLOT(onSocketReadyRead()));
 }
 
@@ -31,8 +33,13 @@ void TcpClient::connectToHost(const QString & host, const quint16 port)
     m_host = host;
     m_port = port;
     m_socket.connectToHost(host, port);
+}
 
-    m_socket.waitForConnected(); // TODO: remove this and re-emit signals.
+void TcpClient::disconnectFromHost()
+{
+    m_host = QString();
+    m_port = 0;
+    m_socket.disconnectFromHost();
 }
 
 //----------------------------------------------------------------------------//
@@ -76,16 +83,6 @@ void TcpClient::setCompressionThreshold(int threshold)
 }
 
 //----------------------------------------------------------------------------//
-
-void TcpClient::onSocketConnected()
-{
-    qDebug() << "Socket connected!";
-}
-
-void TcpClient::onSocketError(QAbstractSocket::SocketError socketError)
-{
-    qDebug() << "Socket error!" << socketError;
-}
 
 void TcpClient::onSocketReadyRead()
 {

@@ -118,10 +118,7 @@ MobRadarWidget::MobRadarWidget(int centerX, int centerZ, int pixelsPerCube, QWid
 
 MobRadarWidget::~MobRadarWidget()
 {
-    for(MobInfo * mob : m_mobs)
-    {
-        delete mob;
-    }
+    qDeleteAll(m_mobs);
     m_mobs.clear();
 
     delete ui;

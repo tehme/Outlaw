@@ -42,9 +42,6 @@ void ChatHandler::onInboundMessage(int serverState, QByteArray data)
     QString chatMessage;
     buffer >> chatMessage;
 
-    qDebug() << "Chat message!";
-    qDebug() << chatMessage;
-
     emit chatMessageReceived(chatMessage);
 }
 

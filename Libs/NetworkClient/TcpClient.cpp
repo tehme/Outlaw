@@ -39,7 +39,11 @@ void TcpClient::disconnectFromHost()
 {
     m_host = QString();
     m_port = 0;
-    m_socket.disconnectFromHost();
+//    m_socket.disconnectFromHost();
+
+    // TODO: disconnectFromHost() does not disconnect while connecting. Figure out why.
+    m_socket.abort();
+    emit disconnected();
 }
 
 //----------------------------------------------------------------------------//

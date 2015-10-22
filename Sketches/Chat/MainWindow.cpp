@@ -33,10 +33,17 @@ void MainWindow::onChatMessageReceived(QString jsonMessage)
 
 void MainWindow::updateConnectButton()
 {
-    const bool enabled = (!ui->hostLineEdit->text().isEmpty() && !ui->nameLineEdit->text().isEmpty());
-
-    ui->connectButton->setEnabled(enabled);
-    ui->connectButton->setText(m_connected ? "Disconnect" : "Connect");
+    if(m_connectionState == ConnectionState::Disconnected)
+    {
+        const bool fieldsFilled = (!ui->hostLineEdit->text().isEmpty() && !ui->nameLineEdit->text().isEmpty());
+        ui->connectButton->setText(QStringLiteral("Connect"));
+        ui->connectButton->setEnabled(fieldsFilled);
+    }
+    else
+    {
+        ui->connectButton->setText(QStringLiteral("Disconnect"));
+        ui->connectButton->setEnabled(true);
+    }
 }
 
 void MainWindow::appendHtml(const QString & htmlString)
@@ -44,7 +51,6 @@ void MainWindow::appendHtml(const QString & htmlString)
     QTextCursor oldCursor = ui->chatWindow->textCursor();
     ui->chatWindow->moveCursor(QTextCursor::End);
     ui->chatWindow->insertHtml(htmlString);
-    ui->chatWindow->insertHtml("<br>");
     ui->chatWindow->setTextCursor(oldCursor);
 }
 
@@ -69,11 +75,11 @@ void MainWindow::cleanup()
 void MainWindow::handleDisconnection(const QString & reportString)
 {
     cleanup();
-    m_connected = false;
+    m_connectionState = ConnectionState::Disconnected;
     updateConnectButton();
 
-    qDebug() << reportString;
-    appendHtml(QString("<b>%1</b>").arg(reportString));
+    qDebug() << qPrintable(reportString);
+    appendHtml(QString("<b>%1</b><br>").arg(reportString));
 }
 
 //----------------------------------------------------------------------------//
@@ -89,7 +95,7 @@ void MainWindow::on_sendButton_clicked()
 
 void MainWindow::on_connectButton_clicked()
 {
-    if(!m_connected)
+    if(m_connectionState == ConnectionState::Disconnected)
     {
         QString host = ui->hostLineEdit->text();
         quint16 port = ui->portSpinBox->value();
@@ -103,10 +109,15 @@ void MainWindow::on_connectButton_clicked()
         connect(m_gameState.get(), SIGNAL(chatMessageReceived(QString)), this, SLOT(onChatMessageReceived(QString)));
         connect(this, SIGNAL(chatMessageSent(QString)), m_gameState.get(), SLOT(onChatMessageSent(QString)));
         connect(m_tcpClient.get(), SIGNAL(connected()), this, SLOT(onConnected()));
+        connect(m_tcpClient.get(), SIGNAL(disconnected()), this, SLOT(onDisconnected()));
         connect(m_tcpClient.get(), SIGNAL(socketError(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
 
         m_tcpClient->connectToHost(host, port);
+        m_connectionState = ConnectionState::Connecting;
+        updateConnectButton();
 
+        qDebug() << "Connecting.";
+        appendHtml(QString("<b>Connecting to %1:%2.</b><br>").arg(host).arg(port));
     }
     else
     {
@@ -132,11 +143,11 @@ void MainWindow::onConnected()
 {
     m_gameState->run();
 
-    m_connected = true;
+    m_connectionState = ConnectionState::Connected;
     updateConnectButton();
 
     qDebug() << "Connected.";
-    appendHtml("<b>Connected.</b>");
+    appendHtml("<b>Connected.</b><br>");
 }
 
 void MainWindow::onDisconnected()

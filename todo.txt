@@ -13,6 +13,8 @@ New features:
   3.1.4. support other messages (add more types);
   4. [partially done] display received text;
   5. [done] form proper chat messages and sending them;
+  6. [done] connect/disconnect in window;
+  7. ping server in window;
 
 * more functional AbstractGameState/BaseGameState:
   1. [done] separate AbstractGameState from BaseGameState:

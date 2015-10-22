@@ -17,6 +17,13 @@ namespace nc = NetworkClient;
 
 //----------------------------------------------------------------------------//
 
+enum class ConnectionState
+{
+    Disconnected,
+    Connecting,
+    Connected
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -51,7 +58,7 @@ private:
     Ui::MainWindow                 * ui;
     std::unique_ptr<nc::TcpClient>   m_tcpClient = nullptr;
     std::unique_ptr<GameState>       m_gameState = nullptr;
-    bool                             m_connected = false;
+    ConnectionState                  m_connectionState = ConnectionState::Disconnected;
 };
 
 //----------------------------------------------------------------------------//

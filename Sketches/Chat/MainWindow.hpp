@@ -4,6 +4,7 @@
 #include <memory>
 #include <QMainWindow>
 #include <QString>
+#include <QTimer>
 #include <NetworkClient/TcpClient.hpp>
 #include "GameState.hpp"
 
@@ -59,6 +60,7 @@ private:
     std::unique_ptr<nc::TcpClient>   m_tcpClient = nullptr;
     std::unique_ptr<GameState>       m_gameState = nullptr;
     ConnectionState                  m_connectionState = ConnectionState::Disconnected;
+    QTimer                           m_connectionTimeout;
 };
 
 //----------------------------------------------------------------------------//

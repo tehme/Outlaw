@@ -14,6 +14,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     updateConnectButton();
+
+    m_connectionTimeout.setInterval(5000);
+    m_connectionTimeout.setSingleShot(true);
+    connect(&m_connectionTimeout, SIGNAL(timeout()), this, SLOT(onConnectTimeout()));
 }
 
 MainWindow::~MainWindow()
@@ -75,6 +79,7 @@ void MainWindow::cleanup()
 void MainWindow::handleDisconnection(const QString & reportString)
 {
     cleanup();
+    m_connectionTimeout.stop();
     m_connectionState = ConnectionState::Disconnected;
     updateConnectButton();
 
@@ -118,6 +123,7 @@ void MainWindow::on_connectButton_clicked()
 
         qDebug() << "Connecting.";
         appendHtml(QString("<b>Connecting to %1:%2.</b><br>").arg(host).arg(port));
+        m_connectionTimeout.start();
     }
     else
     {
@@ -143,6 +149,7 @@ void MainWindow::onConnected()
 {
     m_gameState->run();
 
+    m_connectionTimeout.stop();
     m_connectionState = ConnectionState::Connected;
     updateConnectButton();
 
@@ -157,8 +164,6 @@ void MainWindow::onDisconnected()
 
 void MainWindow::onSocketError(QAbstractSocket::SocketError socketError)
 {
-    Q_UNUSED(socketError);
-
     handleDisconnection("Socket error! Disconnected.");
     qDebug() << "Socket error:" << socketError;
 }

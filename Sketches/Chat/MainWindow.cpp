@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     updateConnectButton();
+    updateSendButton();
 
     m_connectionTimeout.setInterval(5000);
     m_connectionTimeout.setSingleShot(true);
@@ -50,6 +51,35 @@ void MainWindow::updateConnectButton()
     }
 }
 
+void MainWindow::updateSendButton()
+{
+    ui->sendButton->setEnabled(m_connectionState == ConnectionState::Connected);
+}
+
+void MainWindow::changeConnectionState(ConnectionState newState)
+{
+    if(m_connectionState != newState)
+    {
+        m_connectionState = newState;
+        updateConnectButton();
+        updateSendButton();
+
+        if(newState == ConnectionState::Connecting)
+        {
+            m_connectionTimeout.start();
+        }
+        else
+        {
+            m_connectionTimeout.stop();
+
+            if(newState == ConnectionState::Disconnected)
+            {
+                cleanup();
+            }
+        }
+    }
+}
+
 void MainWindow::appendHtml(const QString & htmlString)
 {
     QTextCursor oldCursor = ui->chatWindow->textCursor();
@@ -78,10 +108,7 @@ void MainWindow::cleanup()
 
 void MainWindow::handleDisconnection(const QString & reportString)
 {
-    cleanup();
-    m_connectionTimeout.stop();
-    m_connectionState = ConnectionState::Disconnected;
-    updateConnectButton();
+    changeConnectionState(ConnectionState::Disconnected);
 
     qDebug() << qPrintable(reportString);
     appendHtml(QString("<b>%1</b><br>").arg(reportString));
@@ -118,12 +145,10 @@ void MainWindow::on_connectButton_clicked()
         connect(m_tcpClient.get(), SIGNAL(socketError(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
 
         m_tcpClient->connectToHost(host, port);
-        m_connectionState = ConnectionState::Connecting;
-        updateConnectButton();
+        changeConnectionState(ConnectionState::Connecting);
 
         qDebug() << "Connecting.";
         appendHtml(QString("<b>Connecting to %1:%2.</b><br>").arg(host).arg(port));
-        m_connectionTimeout.start();
     }
     else
     {
@@ -149,9 +174,7 @@ void MainWindow::onConnected()
 {
     m_gameState->run();
 
-    m_connectionTimeout.stop();
-    m_connectionState = ConnectionState::Connected;
-    updateConnectButton();
+    changeConnectionState(ConnectionState::Connected);
 
     qDebug() << "Connected.";
     appendHtml("<b>Connected.</b><br>");

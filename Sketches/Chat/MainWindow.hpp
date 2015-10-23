@@ -41,6 +41,8 @@ public slots:
 
 private:
     void updateConnectButton();
+    void updateSendButton();
+    void changeConnectionState(ConnectionState newState);
     void appendHtml(const QString & htmlString);
     void cleanup();
     void handleDisconnection(const QString & reportString);

@@ -18,6 +18,23 @@ namespace nc = NetworkClient;
 
 //----------------------------------------------------------------------------//
 
+class ChatInputSendFilter : public QObject
+{
+    Q_OBJECT
+
+public:
+    ChatInputSendFilter(QObject * parent = nullptr);
+    virtual ~ChatInputSendFilter() override;
+
+signals:
+    void sendPressed();
+
+private:
+    virtual bool eventFilter(QObject * object, QEvent * event) override;
+};
+
+//----------------------------------------------------------------------------//
+
 enum class ConnectionState
 {
     Disconnected,
@@ -30,8 +47,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget * parent = nullptr);
+    virtual ~MainWindow() override;
 
 signals:
     void chatMessageSent(QString chatMessage);
@@ -50,8 +67,8 @@ private:
 private slots:
     void on_sendButton_clicked();
     void on_connectButton_clicked();
-    void on_hostLineEdit_textChanged(const QString &text);
-    void on_nameLineEdit_textChanged(const QString &text);
+    void on_hostLineEdit_textChanged(const QString & text);
+    void on_nameLineEdit_textChanged(const QString & text);
     void onConnected();
     void onDisconnected();
     void onSocketError(QAbstractSocket::SocketError socketError);

@@ -3,8 +3,35 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QKeyEvent>
 #include <QDebug>
 #include "ChatHtmlFormatter.hpp"
+
+//----------------------------------------------------------------------------//
+
+ChatInputSendFilter::ChatInputSendFilter(QObject * parent) :
+    QObject(parent)
+{
+}
+
+ChatInputSendFilter::~ChatInputSendFilter()
+{
+}
+
+bool ChatInputSendFilter::eventFilter(QObject * object, QEvent * event)
+{
+    Q_UNUSED(object);
+
+    if(event->type() == QEvent::KeyPress)
+    {
+        QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event);
+        if(keyEvent->key() == Qt::Key_Return && !keyEvent->isAutoRepeat())
+        {
+            emit sendPressed();
+        }
+    }
+}
+
 
 //----------------------------------------------------------------------------//
 
@@ -19,6 +46,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_connectionTimeout.setInterval(5000);
     m_connectionTimeout.setSingleShot(true);
     connect(&m_connectionTimeout, SIGNAL(timeout()), this, SLOT(onConnectTimeout()));
+
+    ChatInputSendFilter * sendFilter = new ChatInputSendFilter(this);
+    connect(sendFilter, SIGNAL(sendPressed()), this, SLOT(on_sendButton_clicked()));
+    ui->sayLineEdit->installEventFilter(sendFilter);
 }
 
 MainWindow::~MainWindow()

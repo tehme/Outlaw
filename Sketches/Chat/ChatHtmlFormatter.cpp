@@ -25,6 +25,14 @@ const QMap<QString, QString> ChatHtmlFormatter::m_minecraftColorsAsHtml =
     {"white",        "#ffffff"}
 };
 
+const QMap<QString, QString> ChatHtmlFormatter::m_textModifiersAsHtml =
+{
+    {"bold",          "b"},
+    {"italic",        "i"},
+    {"strikethrough", "s"},
+    {"underlined",    "u"}
+};
+
 //----------------------------------------------------------------------------//
 
 QString ChatHtmlFormatter::formatChatMessageToHtml(const QString & jsonString)
@@ -87,11 +95,9 @@ QString ChatHtmlFormatter::assembleTextExtra(const QJsonObject & textObject)
                 .arg(htmlColor)
                 .arg(extraItemObj.value("text").toString());
 
-            if(extraItemObj.contains("bold") && extraItemObj.value("bold").toBool() == true)
-            {
-                itemText.prepend("<b>");
-                itemText.append("</b>");
-            }
+            QPair<QString, QString> modifiers = makeTextModifiersAsHtml(extraItemObj);
+            itemText.prepend(modifiers.first);
+            itemText.append(modifiers.second);
         }
         else
         {
@@ -109,6 +115,31 @@ QString ChatHtmlFormatter::assembleTextExtra(const QJsonObject & textObject)
     }
 
     return result;
+}
+
+bool ChatHtmlFormatter::hasTextModifier(const QJsonObject & extraObject, const QString & modifier)
+{
+    return (extraObject.contains(modifier) && extraObject.value(modifier).toBool() == true);
+}
+
+QPair<QString, QString> ChatHtmlFormatter::makeTextModifiersAsHtml(const QJsonObject & extraObject)
+{
+    QString openingTags;
+    QString closingTags;
+
+    static const QString openingTemplate("<%1>");
+    static const QString closingTemplate("</%1>");
+
+    for(auto it = m_textModifiersAsHtml.begin(); it != m_textModifiersAsHtml.end(); ++it)
+    {
+        if(hasTextModifier(extraObject, it.key()))
+        {
+            openingTags.append(openingTemplate.arg(it.value()));
+            closingTags.prepend(closingTemplate.arg(it.value()));
+        }
+    }
+
+    return qMakePair(openingTags, closingTags);
 }
 
 //----------------------------------------------------------------------------//

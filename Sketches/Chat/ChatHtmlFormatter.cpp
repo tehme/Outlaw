@@ -50,10 +50,15 @@ QString ChatHtmlFormatter::formatChatMessageToHtml(const QString & jsonString)
         result.append(": ");
         result.append(withString);
     }
+    else if(jsonObject.size() == 0) // plain text
+    {
+        result.append(jsonString);
+    }
     else
     {
         result.append("<font color=\"red\">Unknown:</color> ");
         result.append(jsonString);
+        qDebug() << "Unknown message:" << qPrintable(jsonString);
     }
 
     result.append("<br>");

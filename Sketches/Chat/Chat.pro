@@ -17,13 +17,15 @@ INCLUDEPATH += ../../Libs
 LIBS += -L../../$${BUILTDIR}/Libs -lNetworkClient
 
 
-SOURCES += main.cpp\
-        MainWindow.cpp \
-    GameState.cpp \
-    ChatHtmlFormatter.cpp
-
-HEADERS  += MainWindow.hpp \
+HEADERS += \
+    MainWindow.hpp \
     GameState.hpp \
     ChatHtmlFormatter.hpp
 
-FORMS    += MainWindow.ui
+SOURCES += \
+    main.cpp\
+    MainWindow.cpp \
+    GameState.cpp \
+    ChatHtmlFormatter.cpp
+
+FORMS += MainWindow.ui

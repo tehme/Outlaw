@@ -141,6 +141,11 @@ void MainWindow::cleanup()
 
 void MainWindow::handleDisconnection(const QString & reportString)
 {
+    if(m_connectionState == ConnectionState::Disconnected)
+    {
+        return;
+    }
+
     changeConnectionState(ConnectionState::Disconnected);
 
     qDebug() << qPrintable(reportString);
@@ -172,6 +177,7 @@ void MainWindow::on_connectButton_clicked()
         connect(m_tcpClient.get(), SIGNAL(messageRead(QByteArray)), m_gameState.get(), SLOT(onInboundMessage(QByteArray)));
         connect(m_gameState.get(), SIGNAL(outboundMessage(QByteArray)), m_tcpClient.get(), SLOT(writeMessage(QByteArray)));
         connect(m_gameState.get(), SIGNAL(chatMessageReceived(QString)), this, SLOT(onChatMessageReceived(QString)));
+        connect(m_gameState.get(), SIGNAL(disconnectedFromServer(QString)), this, SLOT(onDisconnected(QString)));
         connect(this, SIGNAL(chatMessageSent(QString)), m_gameState.get(), SLOT(onChatMessageSent(QString)));
         connect(m_tcpClient.get(), SIGNAL(connected()), this, SLOT(onConnected()));
         connect(m_tcpClient.get(), SIGNAL(disconnected()), this, SLOT(onDisconnected()));
@@ -216,6 +222,13 @@ void MainWindow::onConnected()
 void MainWindow::onDisconnected()
 {
     handleDisconnection("Disconnected.");
+}
+
+void MainWindow::onDisconnected(QString jsonMessage)
+{
+    QString disconnectMessage = ChatHtmlFormatter::formatChatMessageToHtml(jsonMessage);
+
+    handleDisconnection("Disconnected with reason: " + disconnectMessage);
 }
 
 void MainWindow::onSocketError(QAbstractSocket::SocketError socketError)

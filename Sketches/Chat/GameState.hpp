@@ -33,6 +33,23 @@ public slots:
 
 //----------------------------------------------------------------------------//
 
+class DisconnectHandler : public nc::AbstractMessageHandler
+{
+    Q_OBJECT
+
+public:
+    explicit DisconnectHandler(QObject * parent = nullptr);
+    virtual ~DisconnectHandler() override;
+
+signals:
+    void disconnectedFromServer(QString jsonMessage);
+
+public slots:
+    virtual void onInboundMessage(int serverState, QByteArray data) override;
+};
+
+//----------------------------------------------------------------------------//
+
 class GameState : public NetworkClient::BaseGameState
 {
     Q_OBJECT
@@ -49,6 +66,7 @@ public:
 
 signals:
     void chatMessageReceived(QString jsonMessage);
+    void disconnectedFromServer(QString jsonMessage);
 
 public slots:
     void onChatMessageSent(QString chatMessage);

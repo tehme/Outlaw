@@ -48,6 +48,42 @@ void ChatHandler::onInboundMessage(int serverState, QByteArray data)
 
 //----------------------------------------------------------------------------//
 
+DisconnectHandler::DisconnectHandler(QObject * parent) :
+    AbstractMessageHandler(parent)
+{
+}
+
+DisconnectHandler::~DisconnectHandler()
+{
+}
+
+void DisconnectHandler::onInboundMessage(int serverState, QByteArray data)
+{
+    nc::ServerState trueState = static_cast<nc::ServerState>(serverState);
+
+    if(trueState != nc::ServerState::Play)
+    {
+        return;
+    }
+
+    nc::MessageBuffer buffer(data);
+    nc::VarInt messageCode;
+
+    buffer >> messageCode;
+
+    if(messageCode.getValue() != 0x40) // disconnect
+    {
+        return;
+    }
+
+    QString disconnectMessage;
+    buffer >> disconnectMessage;
+
+    emit disconnectedFromServer(disconnectMessage);
+}
+
+//----------------------------------------------------------------------------//
+
 GameState::GameState(
     const QString            & host,
     quint16                    port,
@@ -70,6 +106,10 @@ GameState::GameState(
     ChatHandler * chatHandler = new ChatHandler;
     connect(chatHandler, SIGNAL(chatMessageReceived(QString)), this, SIGNAL(chatMessageReceived(QString)));
     addMessageHandler(chatHandler);
+
+    DisconnectHandler * disconnectHandler = new DisconnectHandler;
+    connect(disconnectHandler, SIGNAL(disconnectedFromServer(QString)), this, SIGNAL(disconnectedFromServer(QString)));
+    addMessageHandler(disconnectHandler);
 }
 
 GameState::~GameState()

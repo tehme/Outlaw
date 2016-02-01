@@ -71,6 +71,7 @@ private slots:
     void on_nameLineEdit_textChanged(const QString & text);
     void onConnected();
     void onDisconnected();
+    void onDisconnected(QString jsonMessage);
     void onSocketError(QAbstractSocket::SocketError socketError);
     void onConnectTimeout();
 

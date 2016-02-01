@@ -33,10 +33,18 @@
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QLineEdit" name="hostLineEdit"/>
+     <widget class="QLineEdit" name="hostLineEdit">
+      <property name="placeholderText">
+       <string>Host</string>
+      </property>
+     </widget>
     </item>
     <item row="2" column="0">
-     <widget class="QLineEdit" name="nameLineEdit"/>
+     <widget class="QLineEdit" name="nameLineEdit">
+      <property name="placeholderText">
+       <string>Nickname</string>
+      </property>
+     </widget>
     </item>
     <item row="0" column="1" rowspan="3">
      <widget class="QPushButton" name="connectButton">

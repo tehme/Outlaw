@@ -11,13 +11,15 @@ New features:
   3.1.2. [partially done] support text messages;
   3.1.3. [partially done] support translatable messages;
   3.1.4. support legacy coloring;
-  3.1.5. [partially done] display disconnect messages;
-  3.1.6. support other messages (add more types);
+  3.1.5. [done] display disconnect messages;
+  3.1.6. [partially done] support bold, italic, underlined etc (bold, italic, strikethrough, underlined are done, obfuscated and reset are not);
+  3.1.7. support other messages (add more types);
   4. [partially done] display received text;
-  5. [done] form proper chat messages and sending them;
+  5. [done] form proper chat messages and send them;
   6. [done] connect/disconnect in window;
   7. ping server in window;
   8. [done] send message on enter press;
+  9. history of connections;
 
 * more functional AbstractGameState/BaseGameState:
   1. [done] separate AbstractGameState from BaseGameState:

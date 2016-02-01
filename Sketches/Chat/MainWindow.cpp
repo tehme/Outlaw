@@ -28,10 +28,12 @@ bool ChatInputSendFilter::eventFilter(QObject * object, QEvent * event)
         if(keyEvent->key() == Qt::Key_Return && !keyEvent->isAutoRepeat())
         {
             emit sendPressed();
+            return true;
         }
     }
-}
 
+    return false;
+}
 
 //----------------------------------------------------------------------------//
 

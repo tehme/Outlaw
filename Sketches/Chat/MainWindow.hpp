@@ -74,6 +74,8 @@ private slots:
     void onDisconnected(QString jsonMessage);
     void onSocketError(QAbstractSocket::SocketError socketError);
     void onConnectTimeout();
+    void onSaveChat();
+    void onSaveChatFinished(int result);
 
 private:
     Ui::MainWindow                 * ui;

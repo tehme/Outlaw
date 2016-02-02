@@ -1,9 +1,7 @@
 #include "MainWindow.hpp"
 #include "ui_MainWindow.h"
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
 #include <QKeyEvent>
+#include <QFileDialog>
 #include <QDebug>
 #include "ChatHtmlFormatter.hpp"
 
@@ -52,6 +50,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ChatInputSendFilter * sendFilter = new ChatInputSendFilter(this);
     connect(sendFilter, SIGNAL(sendPressed()), this, SLOT(on_sendButton_clicked()));
     ui->sayLineEdit->installEventFilter(sendFilter);
+
+    connect(ui->actionSave_chat_as_HTML_page, SIGNAL(triggered(bool)), this, SLOT(onSaveChat()));
 }
 
 MainWindow::~MainWindow()
@@ -240,6 +240,32 @@ void MainWindow::onSocketError(QAbstractSocket::SocketError socketError)
 void MainWindow::onConnectTimeout()
 {
     handleDisconnection("Connection timed out. Disconnected.");
+}
+
+void MainWindow::onSaveChat()
+{
+    QFileDialog * saveChatDialog = new QFileDialog(this, "Save chat", QString(), "*.html");
+    saveChatDialog->setAcceptMode(QFileDialog::AcceptSave);
+    saveChatDialog->setFileMode(QFileDialog::AnyFile);
+    saveChatDialog->setDefaultSuffix("html");
+    connect(saveChatDialog, SIGNAL(finished(int)), this, SLOT(onSaveChatFinished(int)));
+
+    saveChatDialog->show();
+}
+
+void MainWindow::onSaveChatFinished(int result)
+{
+    if(result == QFileDialog::Accepted)
+    {
+        QFileDialog * saveChatDialog = static_cast<QFileDialog *>(sender());
+        QString path = saveChatDialog->selectedFiles()[0];
+
+        QFile file(path);
+        file.open(QFile::WriteOnly);
+        file.write(ui->chatWindow->document()->toHtml("utf-8").toUtf8());
+    }
+
+    sender()->deleteLater();
 }
 
 //----------------------------------------------------------------------------//

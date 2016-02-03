@@ -4,6 +4,7 @@
 #include <exception>
 #include <QByteArray>
 #include <QString>
+#include <QUuid>
 #include <QtEndian>
 #include "NetworkClientGeneral.hpp"
 
@@ -38,6 +39,7 @@ public:
     QByteArray readBytesFromBuffer(int nBytes, bool moveOffset = true);
     void writeBytesToBuffer(const QByteArray & bytes);
     void writeBytesToBuffer(const char * bytes, int size);
+    void writeBytesToBuffer(const unsigned char * bytes, int size);
 
 private:
     QByteArray m_bytes;
@@ -52,6 +54,7 @@ MessageBuffer & operator << (MessageBuffer & buffer, IntType src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, float src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, double src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QString & src);
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QUuid & src);
 
 //----------------------------------------------------------------------------//
 
@@ -61,6 +64,7 @@ MessageBuffer & operator >> (MessageBuffer & buffer, IntType & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, float & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, double & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst);
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QUuid & dst);
 
 //----------------------------------------------------------------------------//
 

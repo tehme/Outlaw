@@ -90,7 +90,7 @@ QByteArray MessageBuffer::readBytesFromBuffer(int nBytes, bool moveOffset)
     return bytes;
 }
 
-void MessageBuffer::writeBytesToBuffer(const QByteArray &bytes)
+void MessageBuffer::writeBytesToBuffer(const QByteArray & bytes)
 {
     m_bytes.append(bytes);
 }
@@ -98,6 +98,11 @@ void MessageBuffer::writeBytesToBuffer(const QByteArray &bytes)
 void MessageBuffer::writeBytesToBuffer(const char * bytes, int size)
 {
     m_bytes.append(bytes, size);
+}
+
+void MessageBuffer::writeBytesToBuffer(const unsigned char * bytes, int size)
+{
+    m_bytes.append(reinterpret_cast<const char *>(bytes), size);
 }
 
 //----------------------------------------------------------------------------//
@@ -123,6 +128,14 @@ MessageBuffer & operator << (MessageBuffer & buffer, const QString & src)
     QByteArray utf8Bytes = src.toUtf8();
     buffer << VarInt(utf8Bytes.size());
     buffer.writeBytesToBuffer(utf8Bytes);
+
+    return buffer;
+}
+
+MessageBuffer & operator << (MessageBuffer & buffer, const QUuid & src)
+{
+    buffer << src.data1 << src.data2 << src.data3;
+    buffer.writeBytesToBuffer(src.data4, sizeof(src.data4));
 
     return buffer;
 }
@@ -161,6 +174,28 @@ MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst)
         QByteArray utf8Bytes = buffer.readBytesFromBuffer(size.getValue());
 
         dst = QString::fromUtf8(utf8Bytes);
+    }
+    catch(...)
+    {
+        buffer.setOffset(startingOffset);
+        throw;
+    }
+
+    return buffer;
+}
+
+MessageBuffer & operator >> (MessageBuffer & buffer, QUuid & dst)
+{
+    const int startingOffset = buffer.getOffset();
+
+    try
+    {
+        uint l;
+        ushort w1, w2;
+        uchar b1, b2, b3, b4, b5, b6, b7, b8;
+
+        buffer >> l >> w1 >> w2 >> b1 >> b2 >> b3 >> b4 >> b5 >> b6 >> b7 >> b8;
+        dst = QUuid(l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8);
     }
     catch(...)
     {

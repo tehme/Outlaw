@@ -10,9 +10,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ChunkRenderer
 TEMPLATE = app
+CONFIG += c++11
 
 
-HEADERS  += MainWindow.hpp \
+HEADERS += \
+    MainWindow.hpp \
     OpenGLWidget.hpp
 
 SOURCES +=\
@@ -20,4 +22,4 @@ SOURCES +=\
     MainWindow.cpp \
     OpenGLWidget.cpp
 
-FORMS    += MainWindow.ui
+FORMS   += MainWindow.ui

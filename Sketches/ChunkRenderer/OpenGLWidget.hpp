@@ -1,15 +1,28 @@
 #ifndef OPENGLWIDGET_HPP
 #define OPENGLWIDGET_HPP
 
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_3_Core>
 
-class OpenGLWidget
+//----------------------------------------------------------------------------//
+
+class OpenGLWidget : public QOpenGLWidget
 {
+    Q_OBJECT
+
 public:
-    OpenGLWidget();
+    OpenGLWidget(QWidget * parent = nullptr);
+    virtual ~OpenGLWidget() override;
 
-signals:
+private:
+    virtual void initializeGL() override;
+    virtual void resizeGL(int width, int height) override;
+    virtual void paintGL() override;
 
-public slots:
+private:
+    QOpenGLFunctions_3_3_Core * m_glFuncs;
 };
+
+//----------------------------------------------------------------------------//
 
 #endif // OPENGLWIDGET_HPP

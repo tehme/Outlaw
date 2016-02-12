@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     TestMcClient \
-    Chat
+    Chat \
+    ChunkRenderer

@@ -3,6 +3,9 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
 
 //----------------------------------------------------------------------------//
 
@@ -21,6 +24,9 @@ private:
 
 private:
     QOpenGLFunctions_3_3_Core * m_glFuncs;
+    QOpenGLShaderProgram        m_shaderProgram;
+    QOpenGLBuffer               m_vertexBuffer;
+    QOpenGLVertexArrayObject    m_vertexArray;
 };
 
 //----------------------------------------------------------------------------//

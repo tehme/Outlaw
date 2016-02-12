@@ -12,6 +12,9 @@ TARGET = ChunkRenderer
 TEMPLATE = app
 CONFIG += c++11
 
+include(../../BuiltDir.pri)
+DESTDIR = ../../$${BUILTDIR}/Sketches
+
 
 HEADERS += \
     MainWindow.hpp \
@@ -22,7 +25,8 @@ SOURCES += \
     MainWindow.cpp \
     OpenGLWidget.cpp
 
-FORMS   += MainWindow.ui
+FORMS += \
+    MainWindow.ui
 
 RESOURCES += \
     res.qrc

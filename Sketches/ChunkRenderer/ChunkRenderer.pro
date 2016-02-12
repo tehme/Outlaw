@@ -17,9 +17,12 @@ HEADERS += \
     MainWindow.hpp \
     OpenGLWidget.hpp
 
-SOURCES +=\
+SOURCES += \
     main.cpp \
     MainWindow.cpp \
     OpenGLWidget.cpp
 
 FORMS   += MainWindow.ui
+
+RESOURCES += \
+    res.qrc

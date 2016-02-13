@@ -9,12 +9,16 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     QOpenGLWidget(parent),
     m_glFuncs(nullptr),
     m_vertexBuffer(QOpenGLBuffer::VertexBuffer),
-    m_indexBuffer(QOpenGLBuffer::IndexBuffer)
+    m_indexBuffer(QOpenGLBuffer::IndexBuffer),
+    m_texture(QOpenGLTexture::Target2D)
 {
 }
 
 OpenGLWidget::~OpenGLWidget()
 {
+    makeCurrent();
+    m_texture.destroy();
+    doneCurrent();
 }
 
 void OpenGLWidget::initializeGL()
@@ -30,22 +34,16 @@ void OpenGLWidget::initializeGL()
 
     GLfloat vertices[] =
     {
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, +0.5f, -0.5f,
-        +0.5f, +0.5f, -0.5f,
-        +0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, +0.5f,
-        -0.5f, +0.5f, +0.5f,
-        +0.5f, +0.5f, +0.5f,
-        +0.5f, -0.5f, +0.5f
+        -0.5f, -0.5f, +0.0f,  0.0f, 0.0f,
+        -0.5f, +0.5f, +0.0f,  0.0f, 1.0f,
+        +0.5f, +0.5f, +0.0f,  1.0f, 1.0f,
+        +0.5f, -0.5f, +0.0f,  1.0f, 0.0f
     };
 
     GLuint indices[] =
     {
-        0, 1, 2,  0, 2, 3,
-        7, 6, 2,  7, 2, 3,
-        4, 5, 6,  4, 6, 7,
-        0, 1, 5,  0, 5, 4
+        0, 1, 2,
+        0, 2, 3
     };
 
     m_vertexBuffer.create();
@@ -63,8 +61,12 @@ void OpenGLWidget::initializeGL()
     m_indexBuffer.allocate(indices, sizeof(indices));
 
     // Vertex coordinates attribute
-    m_glFuncs->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+    m_glFuncs->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
     m_glFuncs->glEnableVertexAttribArray(0);
+
+    // Texture coordinates attribute
+    m_glFuncs->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+    m_glFuncs->glEnableVertexAttribArray(1);
 
     m_vertexArray.release();
 
@@ -74,6 +76,11 @@ void OpenGLWidget::initializeGL()
 
     m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex,   ":/shaders/VertexShader.glsl");
     m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/FragmentShader.glsl");
+
+
+    m_texture.setData(QImage(":/textures/Texture.png"));
+    m_texture.setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
+
 
     m_glFuncs->glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
@@ -100,6 +107,7 @@ void OpenGLWidget::paintGL()
 
     m_shaderProgram.bind();
     m_vertexArray.bind();
+    m_texture.bind();
 
     QMatrix4x4 viewMatrix;
     viewMatrix.translate(0.0f, 0.0f, -2.0f);
@@ -112,8 +120,9 @@ void OpenGLWidget::paintGL()
     m_shaderProgram.setUniformValue("projectionMatrix", projectionMatrix);
 
     m_glFuncs->glClear(GL_COLOR_BUFFER_BIT);
-    m_glFuncs->glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+    m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+    m_texture.release();
     m_vertexArray.release();
     m_shaderProgram.release();
 }

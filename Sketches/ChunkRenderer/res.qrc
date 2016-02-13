@@ -3,4 +3,7 @@
         <file>FragmentShader.glsl</file>
         <file>VertexShader.glsl</file>
     </qresource>
+    <qresource prefix="/textures">
+        <file>Texture.png</file>
+    </qresource>
 </RCC>

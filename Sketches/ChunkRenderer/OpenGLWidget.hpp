@@ -6,6 +6,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
+#include <QOpenGLTexture>
 
 //----------------------------------------------------------------------------//
 
@@ -28,6 +29,7 @@ private:
     QOpenGLBuffer               m_vertexBuffer;
     QOpenGLBuffer               m_indexBuffer;
     QOpenGLVertexArrayObject    m_vertexArray;
+    QOpenGLTexture              m_texture;
 };
 
 //----------------------------------------------------------------------------//

@@ -30,16 +30,22 @@ void OpenGLWidget::initializeGL()
 
     GLfloat vertices[] =
     {
-        -0.5f, -0.5f, +0.0f,
-        -0.5f, +0.5f, +0.0f,
-        +0.5f, +0.5f, +0.0f,
-        +0.5f, -0.5f, +0.0f
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, +0.5f, -0.5f,
+        +0.5f, +0.5f, -0.5f,
+        +0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, +0.5f,
+        -0.5f, +0.5f, +0.5f,
+        +0.5f, +0.5f, +0.5f,
+        +0.5f, -0.5f, +0.5f
     };
 
     GLuint indices[] =
     {
-        0, 1, 2,
-        0, 2, 3
+        0, 1, 2,  0, 2, 3,
+        7, 6, 2,  7, 2, 3,
+        4, 5, 6,  4, 6, 7,
+        0, 1, 5,  0, 5, 4
     };
 
     m_vertexBuffer.create();
@@ -97,6 +103,7 @@ void OpenGLWidget::paintGL()
 
     QMatrix4x4 viewMatrix;
     viewMatrix.translate(0.0f, 0.0f, -2.0f);
+    viewMatrix.rotate(45.0f, 0.0f, 1.0f, 0.0f);
 
     QMatrix4x4 projectionMatrix;
     projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 10.0f);
@@ -105,7 +112,7 @@ void OpenGLWidget::paintGL()
     m_shaderProgram.setUniformValue("projectionMatrix", projectionMatrix);
 
     m_glFuncs->glClear(GL_COLOR_BUFFER_BIT);
-    m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    m_glFuncs->glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
 
     m_vertexArray.release();
     m_shaderProgram.release();

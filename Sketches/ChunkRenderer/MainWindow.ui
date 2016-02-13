@@ -16,7 +16,11 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="OpenGLWidget" name="openGLWidget"/>
+     <widget class="OpenGLWidget" name="openGLWidget">
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

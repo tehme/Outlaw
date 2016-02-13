@@ -7,6 +7,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLTexture>
+#include <QTimer>
 
 //----------------------------------------------------------------------------//
 
@@ -23,6 +24,9 @@ private:
     virtual void resizeGL(int width, int height) override;
     virtual void paintGL() override;
 
+    virtual void keyPressEvent(QKeyEvent * keyEvent) override;
+    virtual void keyReleaseEvent(QKeyEvent * keyEvent) override;
+
 private:
     QOpenGLFunctions_3_3_Core * m_glFuncs;
     QOpenGLShaderProgram        m_shaderProgram;
@@ -30,6 +34,13 @@ private:
     QOpenGLBuffer               m_indexBuffer;
     QOpenGLVertexArrayObject    m_vertexArray;
     QOpenGLTexture              m_texture;
+
+    float                       m_forwardSpeed;
+    float                       m_strafeSpeed;
+    float                       m_forwardDistance;
+    float                       m_strafeDistance;
+
+    QTimer                      m_updateTimer;
 };
 
 //----------------------------------------------------------------------------//

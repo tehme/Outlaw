@@ -1,6 +1,8 @@
 #include "OpenGLWidget.hpp"
+#include <vector>
 #include <QOpenGLContext>
 #include <QMatrix4x4>
+#include <QKeyEvent>
 #include <QDebug>
 
 //----------------------------------------------------------------------------//
@@ -10,7 +12,11 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     m_glFuncs(nullptr),
     m_vertexBuffer(QOpenGLBuffer::VertexBuffer),
     m_indexBuffer(QOpenGLBuffer::IndexBuffer),
-    m_texture(QOpenGLTexture::Target2D)
+    m_texture(QOpenGLTexture::Target2D),
+    m_forwardSpeed(0.0f),
+    m_strafeSpeed(0.0f),
+    m_forwardDistance(-3.0f),
+    m_strafeDistance(0.0f)
 {
 }
 
@@ -82,7 +88,12 @@ void OpenGLWidget::initializeGL()
     m_texture.setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
 
 
+    m_glFuncs->glEnable(GL_DEPTH_TEST);
     m_glFuncs->glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+
+    m_updateTimer.setInterval(50);
+    connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(update()));
+    m_updateTimer.start();
 }
 
 void OpenGLWidget::resizeGL(int width, int height)
@@ -109,9 +120,11 @@ void OpenGLWidget::paintGL()
     m_vertexArray.bind();
     m_texture.bind();
 
+    m_forwardDistance += m_forwardSpeed * 50 / 1000;
+    m_strafeDistance += m_strafeSpeed * 50 / 1000;
+
     QMatrix4x4 viewMatrix;
-    viewMatrix.translate(0.0f, 0.0f, -2.0f);
-    viewMatrix.rotate(45.0f, 0.0f, 1.0f, 0.0f);
+    viewMatrix.translate(-m_strafeDistance, 0.0f, m_forwardDistance);
 
     QMatrix4x4 projectionMatrix;
     projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 10.0f);
@@ -119,12 +132,62 @@ void OpenGLWidget::paintGL()
     m_shaderProgram.setUniformValue("viewMatrix", viewMatrix);
     m_shaderProgram.setUniformValue("projectionMatrix", projectionMatrix);
 
-    m_glFuncs->glClear(GL_COLOR_BUFFER_BIT);
+    m_glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     m_texture.release();
     m_vertexArray.release();
     m_shaderProgram.release();
+}
+
+void OpenGLWidget::keyPressEvent(QKeyEvent * keyEvent)
+{
+    if(keyEvent->isAutoRepeat())
+    {
+        return;
+    }
+
+    if(keyEvent->key() == Qt::Key_W)
+    {
+        m_forwardSpeed += 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_S)
+    {
+        m_forwardSpeed -= 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_A)
+    {
+        m_strafeSpeed -= 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_D)
+    {
+        m_strafeSpeed += 2.0f;
+    }
+}
+
+void OpenGLWidget::keyReleaseEvent(QKeyEvent * keyEvent)
+{
+    if(keyEvent->isAutoRepeat())
+    {
+        return;
+    }
+
+    if(keyEvent->key() == Qt::Key_W)
+    {
+        m_forwardSpeed -= 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_S)
+    {
+        m_forwardSpeed += 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_A)
+    {
+        m_strafeSpeed += 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_D)
+    {
+        m_strafeSpeed -= 2.0f;
+    }
 }
 
 //----------------------------------------------------------------------------//

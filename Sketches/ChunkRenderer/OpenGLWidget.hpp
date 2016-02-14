@@ -26,6 +26,7 @@ private:
 
     virtual void keyPressEvent(QKeyEvent * keyEvent) override;
     virtual void keyReleaseEvent(QKeyEvent * keyEvent) override;
+    virtual void mouseMoveEvent(QMouseEvent * mouseEvent) override;
 
 private:
     QOpenGLFunctions_3_3_Core * m_glFuncs;
@@ -37,8 +38,9 @@ private:
 
     float                       m_forwardSpeed;
     float                       m_strafeSpeed;
-    float                       m_forwardDistance;
-    float                       m_strafeDistance;
+    float                       m_xDistance;
+    float                       m_zDistance;
+    float                       m_yawRotation;
 
     QTimer                      m_updateTimer;
 };

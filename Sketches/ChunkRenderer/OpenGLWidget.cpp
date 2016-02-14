@@ -3,6 +3,8 @@
 #include <QOpenGLContext>
 #include <QMatrix4x4>
 #include <QKeyEvent>
+#include <QMouseEvent>
+#include <QCursor>
 #include <QDebug>
 
 //----------------------------------------------------------------------------//
@@ -15,9 +17,11 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     m_texture(QOpenGLTexture::Target2D),
     m_forwardSpeed(0.0f),
     m_strafeSpeed(0.0f),
-    m_forwardDistance(-3.0f),
-    m_strafeDistance(0.0f)
+    m_xDistance(0.0f),
+    m_zDistance(-3.0f),
+    m_yawRotation(0.0f)
 {
+    this->setMouseTracking(true);
 }
 
 OpenGLWidget::~OpenGLWidget()
@@ -120,11 +124,18 @@ void OpenGLWidget::paintGL()
     m_vertexArray.bind();
     m_texture.bind();
 
-    m_forwardDistance += m_forwardSpeed * 50 / 1000;
-    m_strafeDistance += m_strafeSpeed * 50 / 1000;
+    const double yawSin = std::sin(m_yawRotation * 3.14 / 180);
+    const double yawCos = std::cos(m_yawRotation * 3.14 / 180);
+
+    m_zDistance += m_forwardSpeed * 50 / 1000 * yawCos;
+    m_xDistance += m_forwardSpeed * 50 / 1000 * yawSin;
+
+    m_zDistance += m_strafeSpeed * 50 / 1000 * -yawSin;
+    m_xDistance += m_strafeSpeed * 50 / 1000 * yawCos;
 
     QMatrix4x4 viewMatrix;
-    viewMatrix.translate(-m_strafeDistance, 0.0f, m_forwardDistance);
+    viewMatrix.rotate(m_yawRotation, 0.0f, 1.0f, 0.0f);
+    viewMatrix.translate(-m_xDistance, 0.0f, m_zDistance);
 
     QMatrix4x4 projectionMatrix;
     projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 10.0f);
@@ -188,6 +199,23 @@ void OpenGLWidget::keyReleaseEvent(QKeyEvent * keyEvent)
     {
         m_strafeSpeed -= 2.0f;
     }
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent * mouseEvent)
+{
+    // Ignore events that return mouse to center.
+    if(mouseEvent->pos() == QPoint(width() / 2, height() / 2))
+    {
+        return;
+    }
+
+    int xDelta = mouseEvent->x() - (width() / 2);
+    static const float sensitivity = 0.25f;
+    m_yawRotation += xDelta * sensitivity;
+
+    QCursor cursor = this->cursor();
+    cursor.setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
+    setCursor(cursor);
 }
 
 //----------------------------------------------------------------------------//

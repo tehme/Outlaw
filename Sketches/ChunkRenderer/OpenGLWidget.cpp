@@ -22,6 +22,15 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     m_yawRotation(0.0f)
 {
     this->setMouseTracking(true);
+
+    int chunkData[] =
+    {
+        1, 1, 1,  1, 1, 1,  1, 1, 1,
+        1, 1, 1,  1, 1, 1,  1, 1, 1,
+        1, 0, 1,  0, 0, 0,  1, 0, 1
+    };
+
+    m_chunkData = ChunkData(chunkData, 3, 3, 3);
 }
 
 OpenGLWidget::~OpenGLWidget()
@@ -144,6 +153,27 @@ void OpenGLWidget::paintGL()
     m_shaderProgram.setUniformValue("projectionMatrix", projectionMatrix);
 
     m_glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for(int y = 0; y < m_chunkData.getYSize(); ++y)
+    {
+        for(int z = 0; z < m_chunkData.getZSize(); ++z)
+        {
+            for(int x = 0; x < m_chunkData.getYSize(); ++x)
+            {
+                const int blockCode = m_chunkData.getBlock(x, y, z);
+                if(blockCode != 0)
+                {
+                    QMatrix4x4 modelMatrix;
+                    modelMatrix.translate(x, y, z);
+                    m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+
+                    m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                }
+            }
+        }
+    }
+
+
     m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     m_texture.release();

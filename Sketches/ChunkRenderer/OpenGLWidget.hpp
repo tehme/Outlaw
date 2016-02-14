@@ -8,6 +8,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLTexture>
 #include <QTimer>
+#include "ChunkData.hpp"
 
 //----------------------------------------------------------------------------//
 
@@ -43,6 +44,8 @@ private:
     float                       m_yawRotation;
 
     QTimer                      m_updateTimer;
+
+    ChunkData                   m_chunkData;
 };
 
 //----------------------------------------------------------------------------//

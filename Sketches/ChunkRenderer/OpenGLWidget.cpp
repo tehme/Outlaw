@@ -97,7 +97,7 @@ void OpenGLWidget::initializeGL()
     m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/FragmentShader.glsl");
 
 
-    m_texture.setData(QImage(":/textures/Texture.png"));
+    m_texture.setData(QImage(":/textures/Texture.png").mirrored(false, true));
     m_texture.setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
 
 
@@ -147,7 +147,7 @@ void OpenGLWidget::paintGL()
     viewMatrix.translate(-m_xDistance, 0.0f, m_zDistance);
 
     QMatrix4x4 projectionMatrix;
-    projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 10.0f);
+    projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 100.0f);
 
     m_shaderProgram.setUniformValue("viewMatrix", viewMatrix);
     m_shaderProgram.setUniformValue("projectionMatrix", projectionMatrix);
@@ -163,18 +163,57 @@ void OpenGLWidget::paintGL()
                 const int blockCode = m_chunkData.getBlock(x, y, z);
                 if(blockCode != 0)
                 {
-                    QMatrix4x4 modelMatrix;
-                    modelMatrix.translate(x, y, z);
-                    m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-
-                    m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::North))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x, y, z);
+                        modelMatrix.rotate(180.0f, 0.0f, 1.0f, 0.0f);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::South))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x, y, z + 1);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::West))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x - 0.5f, y, z + 0.5f);
+                        modelMatrix.rotate(-90.0f, 0.0f, 1.0f, 0.0f);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::East))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x + 0.5f, y, z + 0.5f);
+                        modelMatrix.rotate(90.0f, 0.0f, 1.0f, 0.0f);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Bottom))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x, y - 0.5f, z + 0.5);
+                        modelMatrix.rotate(-90.0f, 1.0f, 0.0f, 0.0f);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
+                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Top))
+                    {
+                        QMatrix4x4 modelMatrix;
+                        modelMatrix.translate(x, y + 0.5f, z + 0.5);
+                        modelMatrix.rotate(90.0f, 1.0f, 0.0f, 0.0f);
+                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
+                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                    }
                 }
             }
         }
     }
-
-
-    m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     m_texture.release();
     m_vertexArray.release();
@@ -246,6 +285,25 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent * mouseEvent)
     QCursor cursor = this->cursor();
     cursor.setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
     setCursor(cursor);
+}
+
+bool OpenGLWidget::isAirNearBlockFace(
+    const ChunkData & chunkData,
+    int               blockX,
+    int               blockY,
+    int               blockZ,
+    BlockFace         face)
+{
+    switch(face)
+    {
+    case BlockFace::North:  return blockZ == 0 || chunkData.getBlock(blockX, blockY, blockZ - 1) == 0;
+    case BlockFace::South:  return blockZ == chunkData.getZSize() - 1 || chunkData.getBlock(blockX, blockY, blockZ + 1) == 0;
+    case BlockFace::West:   return blockX == 0 || chunkData.getBlock(blockX - 1, blockY, blockZ) == 0;
+    case BlockFace::East:   return blockX == chunkData.getXSize() - 1 || chunkData.getBlock(blockX + 1, blockY, blockZ) == 0;
+    case BlockFace::Bottom: return blockY == 0 || chunkData.getBlock(blockX, blockY - 1, blockZ) == 0;
+    case BlockFace::Top:    return blockY == chunkData.getYSize() - 1 || chunkData.getBlock(blockX, blockY + 1, blockZ) == 0;
+    default:                return false;
+    }
 }
 
 //----------------------------------------------------------------------------//

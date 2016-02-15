@@ -21,6 +21,20 @@ public:
     virtual ~OpenGLWidget() override;
 
 private:
+    enum class BlockFace
+    {
+        // North is -z
+        // East is +x
+        // Blocks go as YZX
+        North,
+        South,
+        West,
+        East,
+        Bottom,
+        Top
+    };
+
+private:
     virtual void initializeGL() override;
     virtual void resizeGL(int width, int height) override;
     virtual void paintGL() override;
@@ -28,6 +42,13 @@ private:
     virtual void keyPressEvent(QKeyEvent * keyEvent) override;
     virtual void keyReleaseEvent(QKeyEvent * keyEvent) override;
     virtual void mouseMoveEvent(QMouseEvent * mouseEvent) override;
+
+    static bool isAirNearBlockFace(
+        const ChunkData & chunkData,
+        int               blockX,
+        int               blockY,
+        int               blockZ,
+        BlockFace         face);
 
 private:
     QOpenGLFunctions_3_3_Core * m_glFuncs;

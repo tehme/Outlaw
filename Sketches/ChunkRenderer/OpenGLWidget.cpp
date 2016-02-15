@@ -55,10 +55,10 @@ void OpenGLWidget::initializeGL()
 
     GLfloat vertices[] =
     {
-        -0.5f, -0.5f, +0.0f,  0.0f, 0.0f,
-        -0.5f, +0.5f, +0.0f,  0.0f, 1.0f,
-        +0.5f, +0.5f, +0.0f,  1.0f, 1.0f,
-        +0.5f, -0.5f, +0.0f,  1.0f, 0.0f
+        0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f,  1.0f, 1.0f,
+        1.0f, 0.0f, 0.0f,  1.0f, 0.0f
     };
 
     GLuint indices[] =
@@ -165,7 +165,7 @@ void OpenGLWidget::paintGL()
                     if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::North))
                     {
                         QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y, z);
+                        modelMatrix.translate(x + 1, y, z);
                         modelMatrix.rotate(180.0f, 0.0f, 1.0f, 0.0f);
                         m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
                         m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -180,7 +180,7 @@ void OpenGLWidget::paintGL()
                     if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::West))
                     {
                         QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x - 0.5f, y, z + 0.5f);
+                        modelMatrix.translate(x, y, z);
                         modelMatrix.rotate(-90.0f, 0.0f, 1.0f, 0.0f);
                         m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
                         m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -188,7 +188,7 @@ void OpenGLWidget::paintGL()
                     if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::East))
                     {
                         QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x + 0.5f, y, z + 0.5f);
+                        modelMatrix.translate(x + 1.0f, y, z + 1.0f);
                         modelMatrix.rotate(90.0f, 0.0f, 1.0f, 0.0f);
                         m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
                         m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -196,16 +196,16 @@ void OpenGLWidget::paintGL()
                     if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Bottom))
                     {
                         QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y - 0.5f, z + 0.5);
-                        modelMatrix.rotate(-90.0f, 1.0f, 0.0f, 0.0f);
+                        modelMatrix.translate(x, y, z);
+                        modelMatrix.rotate(90.0f, 1.0f, 0.0f, 0.0f);
                         m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
                         m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                     }
                     if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Top))
                     {
                         QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y + 0.5f, z + 0.5);
-                        modelMatrix.rotate(90.0f, 1.0f, 0.0f, 0.0f);
+                        modelMatrix.translate(x, y + 1.0f, z + 1.0f);
+                        modelMatrix.rotate(-90.0f, 1.0f, 0.0f, 0.0f);
                         m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
                         m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                     }

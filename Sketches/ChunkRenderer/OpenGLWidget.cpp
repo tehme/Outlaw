@@ -17,9 +17,11 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     m_texture(QOpenGLTexture::Target2D),
     m_forwardSpeed(0.0f),
     m_strafeSpeed(0.0f),
-    m_xDistance(0.0f),
-    m_zDistance(-3.0f),
-    m_yawRotation(0.0f)
+    m_upSpeed(0.0f),
+    m_cameraPosition(0.0f, 0.0f, 10.0f),
+    m_cameraFront(0.0f, 0.0f, -1.0f),
+    m_yawRotation(0.0f),
+    m_pitchRotation(0.0f)
 {
     this->setMouseTracking(true);
 
@@ -133,18 +135,15 @@ void OpenGLWidget::paintGL()
     m_vertexArray.bind();
     m_texture.bind();
 
-    const double yawSin = std::sin(m_yawRotation * 3.14 / 180);
-    const double yawCos = std::cos(m_yawRotation * 3.14 / 180);
+    static const QVector3D cameraUp(0.0f, 1.0f, 0.0f);
+    QVector3D cameraRight = QVector3D::crossProduct(m_cameraFront, cameraUp).normalized();
 
-    m_zDistance += m_forwardSpeed * 50 / 1000 * yawCos;
-    m_xDistance += m_forwardSpeed * 50 / 1000 * yawSin;
-
-    m_zDistance += m_strafeSpeed * 50 / 1000 * -yawSin;
-    m_xDistance += m_strafeSpeed * 50 / 1000 * yawCos;
+    m_cameraPosition += m_forwardSpeed * 50 / 1000 * m_cameraFront;
+    m_cameraPosition += m_strafeSpeed * 50 / 1000 * cameraRight;
+    m_cameraPosition += m_upSpeed * 50 / 1000 * cameraUp;
 
     QMatrix4x4 viewMatrix;
-    viewMatrix.rotate(m_yawRotation, 0.0f, 1.0f, 0.0f);
-    viewMatrix.translate(-m_xDistance, 0.0f, m_zDistance);
+    viewMatrix.lookAt(m_cameraPosition, m_cameraPosition + m_cameraFront, cameraUp);
 
     QMatrix4x4 projectionMatrix;
     projectionMatrix.perspective(45.0f, float(width()) / height(), 0.1f, 100.0f);
@@ -243,6 +242,14 @@ void OpenGLWidget::keyPressEvent(QKeyEvent * keyEvent)
     {
         m_strafeSpeed += 2.0f;
     }
+    if(keyEvent->key() == Qt::Key_Space)
+    {
+        m_upSpeed += 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_Shift)
+    {
+        m_upSpeed -= 2.0f;
+    }
 }
 
 void OpenGLWidget::keyReleaseEvent(QKeyEvent * keyEvent)
@@ -268,22 +275,48 @@ void OpenGLWidget::keyReleaseEvent(QKeyEvent * keyEvent)
     {
         m_strafeSpeed -= 2.0f;
     }
+    if(keyEvent->key() == Qt::Key_Space)
+    {
+        m_upSpeed -= 2.0f;
+    }
+    if(keyEvent->key() == Qt::Key_Shift)
+    {
+        m_upSpeed += 2.0f;
+    }
 }
 
 void OpenGLWidget::mouseMoveEvent(QMouseEvent * mouseEvent)
 {
     // Ignore events that return mouse to center.
-    if(mouseEvent->pos() == QPoint(width() / 2, height() / 2))
+    if(mouseEvent->pos() == QPoint(this->width() / 2, this->height() / 2))
     {
         return;
     }
 
-    int xDelta = mouseEvent->x() - (width() / 2);
+    const int xDelta = mouseEvent->x() - (this->width() / 2);
+    const int yDelta = mouseEvent->y() - (this->height() / 2);
     static const float sensitivity = 0.25f;
     m_yawRotation += xDelta * sensitivity;
+    m_pitchRotation -= yDelta * sensitivity;
+
+    if(m_pitchRotation < -89.0f)
+    {
+        m_pitchRotation = -89.0f;
+    }
+    if(m_pitchRotation > 89.0f)
+    {
+        m_pitchRotation = 89.0f;
+    }
+
+    const float yawRad = m_yawRotation * 3.14 / 180;
+    const float pitchRad = m_pitchRotation * 3.14 / 180;
+
+    m_cameraFront.setX(std::cos(pitchRad) * std::cos(yawRad));
+    m_cameraFront.setY(std::sin(pitchRad));
+    m_cameraFront.setZ(std::cos(pitchRad) * std::sin(yawRad));
 
     QCursor cursor = this->cursor();
-    cursor.setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
+    cursor.setPos(mapToGlobal(QPoint(this->width() / 2, this->height() / 2)));
     setCursor(cursor);
 }
 

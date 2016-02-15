@@ -8,6 +8,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLTexture>
 #include <QTimer>
+#include <QVector3D>
 #include "ChunkData.hpp"
 
 //----------------------------------------------------------------------------//
@@ -60,9 +61,11 @@ private:
 
     float                       m_forwardSpeed;
     float                       m_strafeSpeed;
-    float                       m_xDistance;
-    float                       m_zDistance;
+    float                       m_upSpeed;
+    QVector3D                   m_cameraPosition;
+    QVector3D                   m_cameraFront;
     float                       m_yawRotation;
+    float                       m_pitchRotation;
 
     QTimer                      m_updateTimer;
 

@@ -33,6 +33,7 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     };
 
     m_chunkData = ChunkData(chunkData, 3, 3, 3);
+    m_chunkMesh = ChunkMesh::createFromChunkData(m_chunkData);
 }
 
 OpenGLWidget::~OpenGLWidget()
@@ -53,20 +54,6 @@ void OpenGLWidget::initializeGL()
     }
 
 
-    GLfloat vertices[] =
-    {
-        0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-        1.0f, 0.0f, 0.0f,  1.0f, 0.0f
-    };
-
-    GLuint indices[] =
-    {
-        0, 1, 2,
-        0, 2, 3
-    };
-
     m_vertexBuffer.create();
     m_indexBuffer.create();
 
@@ -75,11 +62,11 @@ void OpenGLWidget::initializeGL()
 
     m_vertexBuffer.bind();
     m_vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_vertexBuffer.allocate(vertices, sizeof(vertices));
+    m_vertexBuffer.allocate(m_chunkMesh.getVertices().data(), m_chunkMesh.getVertices().size() * sizeof(GLfloat));
 
     m_indexBuffer.bind();
     m_indexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    m_indexBuffer.allocate(indices, sizeof(indices));
+    m_indexBuffer.allocate(m_chunkMesh.getIndices().data(), m_chunkMesh.getIndices().size() * sizeof(GLuint));
 
     // Vertex coordinates attribute
     m_glFuncs->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
@@ -153,65 +140,10 @@ void OpenGLWidget::paintGL()
 
     m_glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for(int y = 0; y < m_chunkData.getYSize(); ++y)
+    if(!m_chunkMesh.isEmpty())
     {
-        for(int z = 0; z < m_chunkData.getZSize(); ++z)
-        {
-            for(int x = 0; x < m_chunkData.getYSize(); ++x)
-            {
-                const int blockCode = m_chunkData.getBlock(x, y, z);
-                if(blockCode != 0)
-                {
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::North))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x + 1, y, z);
-                        modelMatrix.rotate(180.0f, 0.0f, 1.0f, 0.0f);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::South))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y, z + 1);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::West))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y, z);
-                        modelMatrix.rotate(-90.0f, 0.0f, 1.0f, 0.0f);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::East))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x + 1.0f, y, z + 1.0f);
-                        modelMatrix.rotate(90.0f, 0.0f, 1.0f, 0.0f);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Bottom))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y, z);
-                        modelMatrix.rotate(90.0f, 1.0f, 0.0f, 0.0f);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                    if(isAirNearBlockFace(m_chunkData, x, y, z, BlockFace::Top))
-                    {
-                        QMatrix4x4 modelMatrix;
-                        modelMatrix.translate(x, y + 1.0f, z + 1.0f);
-                        modelMatrix.rotate(-90.0f, 1.0f, 0.0f, 0.0f);
-                        m_shaderProgram.setUniformValue("modelMatrix", modelMatrix);
-                        m_glFuncs->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                    }
-                }
-            }
-        }
+        m_shaderProgram.setUniformValue("modelMatrix", QMatrix4x4());
+        m_glFuncs->glDrawElements(GL_TRIANGLES, m_chunkMesh.getNumberOfElements(), GL_UNSIGNED_INT, 0);
     }
 
     m_texture.release();
@@ -318,25 +250,6 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent * mouseEvent)
     QCursor cursor = this->cursor();
     cursor.setPos(mapToGlobal(QPoint(this->width() / 2, this->height() / 2)));
     setCursor(cursor);
-}
-
-bool OpenGLWidget::isAirNearBlockFace(
-    const ChunkData & chunkData,
-    int               blockX,
-    int               blockY,
-    int               blockZ,
-    BlockFace         face)
-{
-    switch(face)
-    {
-    case BlockFace::North:  return blockZ == 0 || chunkData.getBlock(blockX, blockY, blockZ - 1) == 0;
-    case BlockFace::South:  return blockZ == chunkData.getZSize() - 1 || chunkData.getBlock(blockX, blockY, blockZ + 1) == 0;
-    case BlockFace::West:   return blockX == 0 || chunkData.getBlock(blockX - 1, blockY, blockZ) == 0;
-    case BlockFace::East:   return blockX == chunkData.getXSize() - 1 || chunkData.getBlock(blockX + 1, blockY, blockZ) == 0;
-    case BlockFace::Bottom: return blockY == 0 || chunkData.getBlock(blockX, blockY - 1, blockZ) == 0;
-    case BlockFace::Top:    return blockY == chunkData.getYSize() - 1 || chunkData.getBlock(blockX, blockY + 1, blockZ) == 0;
-    default:                return false;
-    }
 }
 
 //----------------------------------------------------------------------------//

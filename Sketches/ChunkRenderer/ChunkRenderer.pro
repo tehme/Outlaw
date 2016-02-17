@@ -19,13 +19,15 @@ DESTDIR = ../../$${BUILTDIR}/Sketches
 HEADERS += \
     MainWindow.hpp \
     OpenGLWidget.hpp \
-    ChunkData.hpp
+    ChunkData.hpp \
+    ChunkMesh.hpp
 
 SOURCES += \
     main.cpp \
     MainWindow.cpp \
     OpenGLWidget.cpp \
-    ChunkData.cpp
+    ChunkData.cpp \
+    ChunkMesh.cpp
 
 FORMS += \
     MainWindow.ui

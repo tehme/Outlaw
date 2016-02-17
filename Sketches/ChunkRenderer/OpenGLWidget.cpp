@@ -18,23 +18,32 @@ OpenGLWidget::OpenGLWidget(QWidget * parent) :
     m_forwardSpeed(0.0f),
     m_strafeSpeed(0.0f),
     m_upSpeed(0.0f),
-    m_cameraPosition(0.0f, 0.0f, 10.0f),
+    m_cameraPosition(0.0f, 60.0f, 20.0f),
     m_cameraFront(0.0f, 0.0f, -1.0f),
     m_yawRotation(0.0f),
     m_pitchRotation(0.0f)
 {
     this->setMouseTracking(true);
 
-    int chunkData[] =
-    {
-        1, 1, 1,  1, 1, 1,  1, 1, 1,
-        1, 1, 1,  1, 1, 1,  1, 1, 1,
-        1, 0, 1,  0, 0, 0,  1, 0, 1
-    };
+    QFile f(":/misc/ChunkDump.bin");
+    f.open(QFile::ReadOnly);
 
-    m_chunkData = ChunkData(chunkData, 3, 3, 3);
-    m_chunkMesh = ChunkMesh::createFromChunkData(m_chunkData);
-}
+    m_chunkData = ChunkData(16, 256, 16);
+
+    for(int y = 0; y < 256; ++y)
+    {
+        for(int z = 0; z < 16; ++z)
+        {
+            for(int x = 0; x < 16; ++x)
+            {
+                char c;
+                f.getChar(&c);
+                m_chunkData.setBlock(x, y, z, c);
+            }
+        }
+    }
+
+    m_chunkMesh = ChunkMesh::createFromChunkData(m_chunkData);}
 
 OpenGLWidget::~OpenGLWidget()
 {

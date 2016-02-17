@@ -1,9 +1,12 @@
 <RCC>
-    <qresource lang="GLSL" prefix="/shaders">
+    <qresource prefix="/shaders" lang="GLSL">
         <file>FragmentShader.glsl</file>
         <file>VertexShader.glsl</file>
     </qresource>
     <qresource prefix="/textures">
         <file>Texture.png</file>
+    </qresource>
+    <qresource prefix="/misc">
+        <file>ChunkDump.bin</file>
     </qresource>
 </RCC>

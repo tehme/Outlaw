@@ -51,6 +51,7 @@ private:
 template<typename IntType>
 MessageBuffer & operator << (MessageBuffer & buffer, IntType src);
 
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, bool src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, float src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, double src);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, const QString & src);
@@ -61,6 +62,7 @@ NETWORK_CLIENT_EXPORTED MessageBuffer & operator << (MessageBuffer & buffer, con
 template<typename IntType>
 MessageBuffer & operator >> (MessageBuffer & buffer, IntType & dst);
 
+NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, bool & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, float & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, double & dst);
 NETWORK_CLIENT_EXPORTED MessageBuffer & operator >> (MessageBuffer & buffer, QString & dst);

@@ -107,6 +107,13 @@ void MessageBuffer::writeBytesToBuffer(const unsigned char * bytes, int size)
 
 //----------------------------------------------------------------------------//
 
+MessageBuffer & operator << (MessageBuffer & buffer, bool src)
+{
+    buffer << quint8(src);
+
+    return buffer;
+}
+
 MessageBuffer & operator << (MessageBuffer & buffer, float src)
 {
     quint32 srcAsUint = reinterpret_cast<const quint32 &>(src);
@@ -141,6 +148,15 @@ MessageBuffer & operator << (MessageBuffer & buffer, const QUuid & src)
 }
 
 //----------------------------------------------------------------------------//
+
+MessageBuffer & operator >> (MessageBuffer & buffer, bool & dst)
+{
+    quint8 byte;
+    buffer >> byte;
+    dst = bool(byte);
+
+    return buffer;
+}
 
 MessageBuffer & operator >> (MessageBuffer & buffer, float & dst)
 {
